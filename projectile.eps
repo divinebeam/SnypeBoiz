@@ -1,0 +1,746 @@
+import main;
+import trig;
+import config as cfg;
+import ETK.ETKUtils as Utils;
+import ETK.ETKConstants as Const;
+import ETK.ETKUnit as Unit;
+import effects;
+
+const screen = StringBuffer(256);
+
+const l_main = $L("main");
+const l_pathable = $L("pathable");
+const anywhere = $L("Anywhere");
+const l_buffer = $L("@buffer0");
+const l_height0 = $L("height0");
+const l_height1 = $L("height1");
+const l_height2 = $L("height2");
+
+const u_pathable = Const.Unit_ProtossDarkTemplar_Unit;
+const u_bullettrail = Const.Unit_TerranWraith;
+const u_checkheight = Const.Unit_ZergScourge;
+
+/*
+PROJECTILE TYPES
+0 = PDW
+1 = LMG
+2 = shotgun
+3 = sniper
+4 = airstrike bullet
+5 = frag grenade
+6 = smoke grenade
+7 = flash grenade
+8 = c4
+*/
+
+const traveled = EUDArray(40);      //this is how far the projectile has travelled
+const type = EUDArray(40);          //this determines the projectile's various properties
+const state = EUDArray(40);         //this determines what state the projectile is in 0 = does not exist, 1 = exists
+const angle = EUDArray(40);         //this is the angle of travel
+const angleZ = EUDArray(40);        //this is the angle of travel in a virtual height space
+const posX = EUDArray(40);          
+const posY = EUDArray(40);
+const posZ = EUDArray(40);
+const distance = EUDArray(40);
+const age = EUDArray(40);
+const p1_hit = EUDArray(40);
+const p2_hit = EUDArray(40);
+const p3_hit = EUDArray(40);
+const p4_hit = EUDArray(40);
+const p5_hit = EUDArray(40);
+const p6_hit = EUDArray(40);
+const p7_hit = EUDArray(40);
+const p8_hit = EUDArray(40);
+const p1_nearmiss = EUDArray(40);
+const p2_nearmiss = EUDArray(40);
+const p3_nearmiss = EUDArray(40);
+const p4_nearmiss = EUDArray(40);
+const p5_nearmiss = EUDArray(40);
+const p6_nearmiss = EUDArray(40);
+const p7_nearmiss = EUDArray(40);
+const p8_nearmiss = EUDArray(40);
+
+const expl_state = EUDArray(16);
+const expl_type = EUDArray(16);
+const expl_posX = EUDArray(16);
+const expl_posY = EUDArray(16);
+
+//can be optimized by using setloc instead of MoveLocation
+//could also be optimized by checking coordinates of checkheight unit instead of using bring
+function getHeight(x, y) {
+    var height = 1;
+    setloc(l_main, x, y);
+    MoveUnit(All, u_checkheight, P12, anywhere, l_main);
+    MoveLocation(l_height0, u_checkheight, P12, anywhere);
+    MoveLocation(l_height1, u_checkheight, P12, anywhere);
+    MoveLocation(l_height2, u_checkheight, P12, anywhere);
+    if (Bring(P12, AtLeast, 1, u_checkheight, l_height0) ) height = 1;
+    else if (Bring(P12, AtLeast, 1, u_checkheight, l_height1) ) height = 65;
+    else if (Bring(P12, AtLeast, 1, u_checkheight, l_height2) ) height = 129;
+    MoveUnit(All, u_checkheight, P12, anywhere, l_pathable);
+    return height;
+}
+//could also be optimized in the same way
+function isPathable(location) {
+    MoveUnit(All, u_pathable, P12, anywhere, location);
+    if (Bring(P12, AtLeast, 1, u_pathable, location) ) {
+        MoveUnit(All, u_pathable, P12, anywhere, l_pathable);
+        return true;
+    }
+    MoveUnit(All, u_pathable, P12, anywhere, l_pathable);
+    return false;
+}
+
+function getPrjIndex() {
+    const pid = getcurpl();
+    if (pid == 0) return 0;
+    else if (pid == 1) return 5;
+    else if (pid == 2) return 10;
+    else if (pid == 3) return 15;
+    else if (pid == 4) return 20;
+    else if (pid == 5) return 25;
+    else if (pid == 6) return 30;
+    else if (pid == 7) return 35;
+}
+
+function getExplIndex() {
+    const pid = getcurpl();
+    if (pid == 0) return 0;
+    else if (pid == 1) return 2;
+    else if (pid == 2) return 4;
+    else if (pid == 3) return 6;
+    else if (pid == 4) return 8;
+    else if (pid == 5) return 10;
+    else if (pid == 6) return 12;
+    else if (pid == 7) return 14;
+}
+
+function resetHitFlags(i) {
+    p1_hit[i] = 0;
+    p2_hit[i] = 0;
+    p3_hit[i] = 0;
+    p4_hit[i] = 0;
+    p5_hit[i] = 0;
+    p6_hit[i] = 0;
+    p7_hit[i] = 0;
+    p8_hit[i] = 0;
+    p1_nearmiss[i] = 0;
+    p2_nearmiss[i] = 0;
+    p3_nearmiss[i] = 0;
+    p4_nearmiss[i] = 0;
+    p5_nearmiss[i] = 0;
+    p6_nearmiss[i] = 0;
+    p7_nearmiss[i] = 0;
+    p8_nearmiss[i] = 0;
+}
+
+function getProjectileAngle(type, originX, originY, destX, destY) {
+    var angle = trig.getAngle(originX, originY, destX, destY);
+    var spread = 0;
+    if (type == 0) spread = cfg.pdw_spread;
+    else if (type == 1) spread = cfg.lmg_spread;
+    else if (type == 2) spread = cfg.dbl_spread;
+    else if (type == 3) spread = cfg.prc_spread;
+    else if (type == 4) spread = cfg.strikep_spread;
+    if (spread > 0) {
+        angle += 1000;
+        const r = main.random(0, spread - 1);
+        if (r < (spread/2)) angle -= r;
+        else angle += r;
+        if (angle < 1000) angle += 360;
+        else if (angle > 1360) angle -= 1360;
+        angle -= 1000;
+    }
+    return angle;
+}
+
+function getProjectileDistance(i, oX, oY, dX, dY) {
+    var dis = trig.getDistance(oX, oY, dX, dY);
+    if (type[i] == 5 && dis > cfg.frag_range) dis = cfg.frag_range;
+    else if (type[i] == 6 && dis > cfg.frag_range) dis = cfg.frag_range;
+    else if (type[i] == 7 && dis > cfg.frag_range) dis = cfg.frag_range;
+    else if (type[i] == 8 && dis > cfg.c4_range) dis = cfg.c4_range;
+    return dis;
+}
+
+function createProjectile(amount, projtype, projage, originX, originY, dX, dY) {
+    var created = 0;
+    var i = getPrjIndex();
+    var max = i+5;
+    for (i += 0; i < max; i++) {
+        if (state[i] == 0) {
+            resetHitFlags(i);
+            traveled[i] = 0;
+            type[i] = projtype;
+            state[i] = 1;
+            age[i] = projage;
+            posX[i] = originX;
+            posY[i] = originY;
+            posZ[i] = getHeight(originX, originY);
+            angle[i] = getProjectileAngle(projtype, originX, originY, dX, dY);
+            const dZ = getHeight(dX, dY);
+            distance[i] = getProjectileDistance(i, originX, originY, dX, dY);
+            angleZ[i] = atan2(distance[i], posZ[i] - dZ);
+            created++;
+            if (created == amount) return;
+        }
+    }
+}
+
+function getVelocityStep(i) {
+    var velocity = 0;
+    var step = 16;
+
+    if (type[i] == 5) {step = cfg.frag_step; velocity = cfg.frag_velocity;}
+    else if (type[i] == 6) {step = cfg.frag_step; velocity = cfg.frag_velocity;}
+    else if (type[i] == 7) {step = cfg.frag_step; velocity = cfg.frag_velocity;}
+    else if (type[i] == 8) {step = cfg.frag_step; velocity = cfg.frag_velocity;}
+
+    if (velocity == 0) {
+        if (type[i] == 0) {step = cfg.pdw_step; velocity = cfg.pdw_range / step;}
+        else if (type[i] == 1) {step = cfg.lmg_step; velocity = cfg.lmg_range / step;}
+        else if (type[i] == 2) {step = cfg.dbl_step; velocity = cfg.dbl_range / step;}
+        else if (type[i] == 3) {step = cfg.prc_step; velocity = cfg.prc_range / step;}
+        else if (type[i] == 4) {step = cfg.strikep_step; velocity = cfg.strikep_range / step;}
+    }
+    return velocity, step;
+}
+
+function checkCollision(i) {
+    const pid = getcurpl();
+    var terrain_height = 1;
+    var terrain = 0;
+    var players = 0;
+    var props = 0;
+    var proxmine = 0;
+    var box;
+    //setup
+    if (type[i] == 0) {
+        terrain = 1;
+        players = 1;
+        props = 1;
+        proxmine = 1;
+        box = 40;
+    } else if (type[i] == 1) {
+        terrain = 1;
+        players = 1;
+        props = 1;
+        proxmine = 1;
+        box = 40;
+    } else if (type[i] == 2) {
+        terrain = 1;
+        players = 1;
+        props = 1;
+        proxmine = 1;
+        box = 48;
+    } else if (type[i] == 3) {
+        players = 1;
+        props = 1;
+        proxmine = 1;
+        box = 40;
+    } else if (type[i] == 4) {
+        players = 1;
+        props = 1;
+        proxmine = 1;
+        box = 64;
+    }
+    if (props || terrain) terrain_height = getHeight(posX[i], posY[i]);
+    //check
+    if (players) {
+        for (var p = 0 ; p < 8 ; p++) {
+            if (p == pid) continue;
+            else if (main.isAlly(p) && main.setting_friendlyfire == false) continue;
+            if (main.heroAtRect(p, posX[i] - box/2, posX[i] + box/2, posY[i] - box/2, posY[i] + box/2)) {
+                const cloaked = Unit.getIsCloaked(main.hero_arr[p]);
+                if (cloaked == 0) return main.hero_arr[p];
+            } else if (main.heroAtRect(p, posX[i] - 84, posX[i] + 84, posY[i] - 84, posY[i] + 84)) {
+                if (p == 0 && p1_nearmiss[i] == 0) {p1_nearmiss[i] = 1; main.sound_wiz[p] = 1;}
+                else if (p == 1 && p2_nearmiss[i] == 0) {p2_nearmiss[i] = 1; main.sound_wiz[p] = 1;}
+                else if (p == 2 && p3_nearmiss[i] == 0) {p3_nearmiss[i] = 1; main.sound_wiz[p] = 1;}
+                else if (p == 3 && p4_nearmiss[i] == 0) {p4_nearmiss[i] = 1; main.sound_wiz[p] = 1;}
+                else if (p == 4 && p5_nearmiss[i] == 0) {p5_nearmiss[i] = 1; main.sound_wiz[p] = 1;}
+                else if (p == 5 && p6_nearmiss[i] == 0) {p6_nearmiss[i] = 1; main.sound_wiz[p] = 1;}
+                else if (p == 6 && p7_nearmiss[i] == 0) {p7_nearmiss[i] = 1; main.sound_wiz[p] = 1;}
+                else if (p == 7 && p8_nearmiss[i] == 0) {p8_nearmiss[i] = 1; main.sound_wiz[p] = 1;}
+            }
+        }
+    }
+    if (props) {
+        if ((terrain_height >= posZ[i] - box/2 && terrain_height <= posZ[i] + box/2) || terrain_height == posZ[i]) {
+            setloc(l_main, posX[i], posY[i]);
+            dilateloc(l_main, box/2, box/2);
+            GiveUnits(All, main.u_barrel, P12, l_main, pid);
+            GiveUnits(All, main.u_truck, P12, l_main, pid);
+            GiveUnits(All, main.u_car, P12, l_main, pid);
+            setloc(l_main, posX[i], posY[i]);
+            if (Command(pid, AtLeast, 1, main.u_barrel) || Command(pid, AtLeast, 1, main.u_truck) || Command(pid, AtLeast, 1, main.u_car)) {
+                return 100;
+            }
+        }
+    }
+    if (terrain) {
+        var mode = 0;
+        if (mode == 0) {
+            //same height
+            if (posZ[i] < terrain_height && angleZ[i] == 90) return 1000;
+            //high to low
+            else if (state[i] > 20 && posZ[i] < terrain_height && angleZ[i] < 90) return 1000;
+            //low to high
+            else if (posZ[i] < terrain_height && angleZ[i] > 90) return 1000;
+        }
+    }
+    if (proxmine) {
+        if ((terrain_height >= posZ[i] - box/2 && terrain_height <= posZ[i] + box/2) || terrain_height == posZ[i]) {
+            for (var m = 0; m < 16; m++) {
+                if (main.mine_arr[m] > 0) {
+                    const minex, miney = Unit.getPosition(main.mine_arr[m]);
+                    if (Unit.getHitpoints(main.mine_arr[m]) == 100) {
+                        if (main.posAtRect(minex, miney, posX[i] - box/2, posX[i] + box/2, posY[i] - box/2, posY[i] + box/2)) {
+                            Unit.setHitpoints(main.mine_arr[m], 125);
+                            setloc(l_main, minex, miney);
+                            GiveUnits(1, main.u_proximitymine, Unit.getPlayerID(main.mine_arr[m]), l_main, pid);
+                            return 10000;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+function doDamage(i, target) {
+    const pid = getcurpl();
+    var damage = 0;
+    var minimum = 0;
+    var flag = 0;
+    var falloff = 0;
+    var loss = 0;
+    //setup
+    if (type[i] == 0) {
+        damage = cfg.pdw_damage;
+        minimum = cfg.pdw_mdamage;
+        flag = 4;
+        falloff = 4*32;
+        loss = 4;
+    } else if (type[i] == 1) {
+        damage = cfg.lmg_damage;
+        minimum = cfg.lmg_mdamage;
+        flag = 5;
+        falloff = 10*32;
+        loss = 2;
+    } else if (type[i] == 2) {
+        damage = cfg.dbl_damage;
+        minimum = cfg.dbl_mdamage;
+        flag = 6;
+        falloff = 3*32;
+        loss = 12;
+    } else if (type[i] == 3) {
+        damage = cfg.prc_damage;
+        flag = 7;
+    } else if (type[i] == 4) {
+        damage = cfg.strikep_damage;
+        flag = 8;
+    }
+    if (falloff > 0 && traveled[i] > falloff + 32) {
+        var amount_of_loss = (traveled[i] - falloff) / 32;
+        damage += 1000;
+        damage -= amount_of_loss*loss;
+        if (damage < 1000 + minimum) damage = minimum;
+        else damage -= 1000;
+    }
+    //do
+    if (target == main.hero_arr[0] && p1_hit[i] == 0) {
+        main.dmg_to_p1[pid] += damage; 
+        main.dmg_to_p1_flag[pid] = main.setDamageFlag(flag);
+        p1_hit[i] = 1;
+    } else if (target == main.hero_arr[1] && p2_hit[i] == 0) {
+        main.dmg_to_p2[pid] += damage; 
+        main.dmg_to_p2_flag[pid] = main.setDamageFlag(flag);
+        p2_hit[i] = 1;
+    } else if (target == main.hero_arr[2] && p3_hit[i] == 0) {
+        main.dmg_to_p3[pid] += damage; 
+        main.dmg_to_p3_flag[pid] = main.setDamageFlag(flag);
+        p3_hit[i] = 1;
+    } else if (target == main.hero_arr[3] && p4_hit[i] == 0) {
+        main.dmg_to_p4[pid] += damage; 
+        main.dmg_to_p4_flag[pid] = main.setDamageFlag(flag);
+        p4_hit[i] = 1;
+    } else if (target == main.hero_arr[4] && p5_hit[i] == 0) {
+        main.dmg_to_p5[pid] += damage; 
+        main.dmg_to_p5_flag[pid] = main.setDamageFlag(flag);
+        p5_hit[i] = 1;
+    } else if (target == main.hero_arr[5] && p6_hit[i] == 0) {
+        main.dmg_to_p6[pid] += damage; 
+        main.dmg_to_p6_flag[pid] = main.setDamageFlag(flag);
+        p6_hit[i] = 1;
+    } else if (target == main.hero_arr[6] && p7_hit[i] == 0) {
+        main.dmg_to_p7[pid] += damage; 
+        main.dmg_to_p7_flag[pid] = main.setDamageFlag(flag);
+        p7_hit[i] = 1;
+    } else if (target == main.hero_arr[7] && p8_hit[i] == 0) {
+        main.dmg_to_p8[pid] += damage; 
+        main.dmg_to_p8_flag[pid] = main.setDamageFlag(flag);
+        p8_hit[i] = 1;
+    }
+}
+
+function maxRange(i) {
+    if (type[i] == 0) return cfg.pdw_range;
+    else if (type[i] == 1) return cfg.lmg_range;
+    else if (type[i] == 2) return cfg.dbl_range;
+    else if (type[i] == 3) return cfg.prc_range;
+    else if (type[i] == 4) return cfg.strikep_range;
+    else if (type[i] == 5) return distance[i];
+    else if (type[i] == 6) return distance[i];
+    else if (type[i] == 7) return distance[i];
+    else if (type[i] == 8) return distance[i];
+    return 0;
+}
+
+function getZOffset(i) {
+    var arc = 0;
+    var newposZ = 0;
+    if (type[i] == 5) arc = 1;
+    else if (type[i] == 6) arc = 1;
+    else if (type[i] == 7) arc = 1;
+    else if (type[i] == 8) arc = 1;
+    if (arc) {
+        var posY, posZ = posY[i], 1;
+        const h = (distance[i]*2) + 20;
+        posZ = h*traveled[i]*(distance[i] - traveled[i]) / (distance[i]*distance[i]);
+        newposZ = posY - posZ;
+    }
+    if (newposZ == 0 || newposZ > 8191) newposZ = posY[i];
+    return newposZ;
+}
+
+function drawVisual(i, x, y) {
+    const pid = getcurpl();
+    if (x > 0 && y > 0) setloc(l_main, x, y);
+    else return;
+    //barrel effects
+    if (type[i] == 3 && traveled[i] < 32*2 && traveled[i] > 32) {
+        Utils.createImageSpriteAtLocation(440, l_main);
+        return;
+    }
+    //path effects
+    if (state[i] != 100) {
+        if (type[i] == 0) {
+            Utils.createImageSpriteAtLocation(48, l_main);
+            return;
+        } else if (type[i] == 1) {
+            Utils.createImageSpriteAtLocation(48, l_main);
+            return;
+        } else if (type[i] == 2) {
+            const rx = main.random(0, 3);
+            const ry = main.random(0, 3);
+            if (rx > 2) addloc(l_main, rx, 0);
+            else addloc(l_main, -rx, 0);
+            if (ry > 2) addloc(l_main, 0, ry);
+            else addloc(l_main, 0, -ry);
+            const r = main.random(0, 1);
+            if (r) Utils.createImageSpriteAtLocation(531, l_main);
+            else Utils.createImageSpriteAtLocation(423, l_main);
+            return;
+        } else if (type[i] == 3) {
+            Utils.createImageSpriteAtLocation(441, l_main);
+            return;
+        } else if (type[i] == 4) {
+            const r = main.random(0, 1);
+            if (r) Utils.createImageSpriteAtLocation(527, l_main);
+            else Utils.createImageSpriteAtLocation(440, l_main);
+            return;
+        } else if (type[i] == 5) {
+            Utils.createImageSpriteAtLocation(495, l_main);
+            return;
+        } else if (type[i] == 6) {
+            Utils.setImageDrawFunction(495, 16);
+            Utils.createImageSpriteAtLocation(495, l_main);
+            Utils.setImageDrawFunction(495, 0);
+            return;
+        } else if (type[i] == 7) {
+            Utils.setImageDrawFunction(233, 16);
+            Utils.createImageSpriteAtLocation(233, l_main);
+            Utils.setImageDrawFunction(233, 0);
+            return;
+        } else if (type[i] == 8) {
+            RemoveUnit(88, pid);
+            CreateUnit(1, 88, l_main, pid);
+            return;
+        }
+    }
+    //termination effects
+    if (x == main.hero_posX[pid] && y == main.hero_posY[pid]) return;
+    if (type[i] == 0) {
+        setloc(l_main, x, y);
+        CreateUnit(1, Const.Unit_ProtossScout, l_main, pid);
+        KillUnit(Const.Unit_ProtossScout, pid);
+        return;
+    } else if (type[i] == 1) {
+        Utils.createImageSpriteAtLocation(Const.Image_Spider_Mine_Death, l_main);
+        return;
+    } else if (type[i] == 2) {
+        Utils.createImageSpriteAtLocation(332, l_main);
+        return;
+    } else if (type[i] == 3) {
+        Utils.createImageSpriteAtLocation(332, l_main);
+        return;
+    } else if (type[i] == 4) {
+        Utils.createImageSpriteAtLocation(332, l_main);
+        return;
+    } else if (type[i] == 5) {
+        Utils.createImageSpriteAtLocation(441, l_main); //495
+        return;
+    } else if (type[i] == 6) {
+        Utils.createImageSpriteAtLocation(441, l_main);
+        return;
+    } else if (type[i] == 7) {
+        Utils.createImageSpriteAtLocation(441, l_main);
+        return;
+    } else if (type[i] == 8) {
+        Utils.createImageSpriteAtLocation(441, l_main);
+        return;
+    }
+}
+
+function sendBounceSound(x, y) {
+    for (var i = 0; i < 8; i++) {
+        const distance = trig.getDistance(main.hero_posX[i], main.hero_posY[i], x, y);
+        if (distance < 8*32) main.sound_physics[i] = 1;
+    }
+}
+
+function sendBeepSound(x, y) {
+    for (var i = 0; i < 8; i++) {
+        const distance = trig.getDistance(main.hero_posX[i], main.hero_posY[i], x, y);
+        if (distance < 8*32) main.sound_interact[i] = 1;
+    }
+}
+
+function sendC4LandSound(x, y) {
+    for (var i = 0; i < 8; i++) {
+        const distance = trig.getDistance(main.hero_posX[i], main.hero_posY[i], x, y);
+        if (distance < 8*32) main.sound_physics[i] = 4;
+    }
+}
+
+function updateAge(i) {
+    if (type[i] == 5) {
+        age[i]++;
+        if (age[i] % 20 == 0) sendBeepSound(posX[i], posY[i]);
+        if (age[i] > cfg.frag_time) state[i] = 100;
+    } else if (type[i] == 6) {
+        age[i]++;
+        if (age[i] > cfg.frag_time) state[i] = 100;
+    } else if (type[i] == 7) {
+        age[i]++;
+        if (age[i] > cfg.frag_time) state[i] = 100;
+    }
+    return;
+}
+
+function createExplosion(explType, explAge, x, y) {
+    var i = getExplIndex();
+    var max = i+2;
+    for (i += 0; i < max; i++) {
+        if (expl_state[i] == 0) {
+            expl_state[i] = explAge;
+            expl_type[i] = explType;
+            expl_posX[i] = x;
+            expl_posY[i] = y;
+            if (explType == 0) {
+                setloc(l_main, expl_posX[i], expl_posY[i]);
+                Utils.createImageSpriteAtLocation(233, l_main);
+            }
+            return;
+        }
+    }
+}
+
+function createFlash(x, y) {
+    const pid = getcurpl();
+    setloc(l_main, x, y);
+    Utils.createImageSpriteAtLocation(556, l_main);
+    var max_distance = 192;
+    var hit = 0;
+    for (var p = 0; p < 8; p++) {
+        var distance = trig.getDistance(main.hero_posX[p], main.hero_posY[p], x, y);
+        if (distance <= max_distance) {
+            hit = 1;
+            var angle = trig.convertDirectionDegree_simple(trig.getAngle(main.hero_posX[p], main.hero_posY[p], x, y));
+            angle += 100;
+            var facing_direction = main.hero_direction[p] + 100;
+            var facing_flash = 0;
+            if (facing_direction >= angle - 2 && facing_direction <= angle + 2) facing_flash = 1;
+            var flash_effect = 7;
+            if (facing_flash > 0) flash_effect += 3;
+            distance /= 32;
+            flash_effect -= distance;
+            if (flash_effect > 100) flash_effect = 1;
+            else if (flash_effect > 9) flash_effect = 9;
+            if (flash_effect > main.ailment_flash[p]) {
+                main.ailment_flash[p] = flash_effect;
+                main.ailment_flash_timer[p] = cfg.flash_duration;
+            }
+        }
+        if (distance < 12*32) main.sound_explosion[p] = 4;
+    }
+    if (hit) DisplayText("\x12\x1FFLASH HIT!");
+}
+
+function updateProjectiles() {
+    const pid = getcurpl();
+    var i = getPrjIndex();
+    var max = i+5;
+    for (i += 0; i < max; i++) {
+        if (state[i] > 0) {
+            //velocity is how many "steps" to check/advance per frame. If n/a it will check full distance in a single frame.
+            //a step is defined by the projectile type, maybe half a tile or 16 pixels.
+            const velocity, step = getVelocityStep(i);
+            for (var j = 0; j < velocity; j++) {
+                var offsetz = posY[i];
+                if (traveled[i] >= 16) {
+                    var collided = checkCollision(i);
+                    if (collided == 100) {
+                        //props
+                        if (type[i] != 0) collided = 0;
+                    } else if (collided == 1000) {
+                        //terrain
+                    } else if (collided == 10000) {
+                        //proximity mine
+                    } else if (collided > 0) {
+                        //players
+                        doDamage(i, collided);
+                        if (type[i] != 0 && type[i] != 1) collided = 0;
+                    }
+                    //order the projectile to die if collided > 0
+                    if (collided > 0) state[i] = 100;
+                }
+                if (state[i] != 100) {
+                    traveled[i] += step;
+                    posX[i], posY[i] = trig.ray(posX[i], posY[i], angle[i], step);
+                    if (angleZ[i] > 90) {
+                        posZ[i] += step;
+                        if (posZ[i] > 65) posZ[i] = 65;
+                        else if (posZ[i] < 1) posZ[i] = 1;
+                    }
+                    else if (angleZ[i] < 90) {
+                        posZ[i] -= step;
+                        if (posZ[i] > 65) posZ[i] = 65;
+                        else if (posZ[i] < 1) posZ[i] = 1;
+                    }
+                    if (traveled[i] > maxRange(i)) state[i] = 100;
+                    offsetz = getZOffset(i);
+                    //bounce
+                    if (type[i] == 5 && state[i] == 100) {
+                        state[i] = 1;
+                        traveled[i] = 0;
+                        distance[i] = distance[i]/2;
+                        if (main.isPositionWater(posX[i], offsetz)) state[i] = 101;
+                        else if (distance[i] < 32) state[i] = 100;
+                        sendBounceSound(posX[i], offsetz);
+                    } else if (type[i] == 6 && state[i] == 100) {
+                        state[i] = 1;
+                        traveled[i] = 0;
+                        distance[i] = distance[i]/2;
+                        if (main.isPositionWater(posX[i], offsetz)) state[i] = 101;
+                        else if (distance[i] < 32) state[i] = 100;
+                        sendBounceSound(posX[i], offsetz);
+                    } else if (type[i] == 7 && state[i] == 100) {
+                        state[i] = 1;
+                        traveled[i] = 0;
+                        distance[i] = distance[i]/2;
+                        if (main.isPositionWater(posX[i], offsetz)) state[i] = 101;
+                        else if (distance[i] < 32) state[i] = 100;
+                        sendBounceSound(posX[i], offsetz);
+                    }
+                }
+                updateAge(i);
+                drawVisual(i, posX[i], offsetz);
+                
+                if (state[i] >= 100) {
+                    if (state[i] == 100) {
+                        if (type[i] == 5) createExplosion(0, age[i], posX[i], offsetz);
+                        else if (type[i] == 6) main.createSmoke(posX[i], offsetz);
+                        else if (type[i] == 7) createFlash(posX[i], offsetz);
+                        else if (type[i] == 8) {
+                            main.createC4(posX[i], offsetz);
+                            sendC4LandSound(posX[i], offsetz);
+                        }
+                    }
+                    state[i] = 0;
+                    RemoveUnit(88, pid);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+function doExplosionDamage(i) {
+    const pid = getcurpl();
+    var base_damage = 0;
+    var minimum = 0;
+    var loss = 0;
+    var max_distance = 0;
+    if (expl_type[i] == 0) {
+        base_damage = cfg.frag_damage;
+        minimum = cfg.frag_mdamage;
+        loss = cfg.frag_loss;
+        max_distance = 192;
+    }
+    for (var p = 0; p < 8; p++) {
+        const distance = trig.getDistance(main.hero_posX[p], main.hero_posY[p], expl_posX[i], expl_posY[i]);
+        if (distance <= max_distance) {
+            var amount_of_loss = 0;
+            var damage = base_damage;
+            if (distance >= 16*3) amount_of_loss = (distance - 32) / 16;
+            damage += 1000;
+            damage -= amount_of_loss*loss;
+            if (damage < 1000 + minimum) damage = minimum;
+            else damage -= 1000;
+            if (p == pid) main.addDamageBuffer(pid, damage, pid);
+            else if (p == 0) {main.dmg_to_p1[pid] += damage; main.dmg_to_p1_flag[pid] = main.setDamageFlag(3);}
+            else if (p == 1) {main.dmg_to_p2[pid] += damage; main.dmg_to_p2_flag[pid] = main.setDamageFlag(3);}
+            else if (p == 2) {main.dmg_to_p3[pid] += damage; main.dmg_to_p3_flag[pid] = main.setDamageFlag(3);}
+            else if (p == 3) {main.dmg_to_p4[pid] += damage; main.dmg_to_p4_flag[pid] = main.setDamageFlag(3);}
+            else if (p == 4) {main.dmg_to_p5[pid] += damage; main.dmg_to_p5_flag[pid] = main.setDamageFlag(3);}
+            else if (p == 5) {main.dmg_to_p6[pid] += damage; main.dmg_to_p6_flag[pid] = main.setDamageFlag(3);}
+            else if (p == 6) {main.dmg_to_p7[pid] += damage; main.dmg_to_p7_flag[pid] = main.setDamageFlag(3);}
+            else if (p == 7) {main.dmg_to_p8[pid] += damage; main.dmg_to_p8_flag[pid] = main.setDamageFlag(3);}
+        }
+        if (distance < 12*32) main.sound_explosion[p] = 2;
+        else main.sound_explosion[p] = 3;
+    }
+
+    setloc(l_main, expl_posX[i], expl_posY[i]);
+    main.locAcquireLoc(l_main, main.l_8x8);
+    GiveUnits(All, main.u_barrel, P12, main.l_8x8, pid);
+    GiveUnits(All, main.u_car, P12, main.l_8x8, pid);
+    GiveUnits(All, main.u_truck, P12, main.l_8x8, pid);
+}
+
+function updateExplosions() {
+    var i = getExplIndex();
+    var max = i+2;
+    for (i += 0; i < max; i++) {
+        if (expl_state[i] > 0) {
+            expl_state[i]++;
+            //check age
+            if (expl_state[i] % 10 == 0) {
+                setloc(l_main, expl_posX[i], expl_posY[i]);
+                Utils.createImageSpriteAtLocation(233, l_main);
+            }
+            if (expl_state[i] % 10 == 0) sendBeepSound(expl_posX[i], expl_posY[i]);
+            if (expl_type[i] == 0 && expl_state[i] > cfg.frag_time && expl_state[i] < 1000) expl_state[i] = 1000;
+            //do damage
+            if (expl_state[i] == 1000) {
+                doExplosionDamage(i);
+                setloc(l_main, expl_posX[i], expl_posY[i]);
+                Utils.createImageSpriteAtLocation(333, l_main);
+                expl_state[i] = 0;
+            }
+        }
+    }
+}

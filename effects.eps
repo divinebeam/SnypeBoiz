@@ -1,0 +1,262 @@
+import ETK.ETKUtils as Utils;
+import ETK.ETKConstants as Const;
+
+const l_buffer = $L("@buffer0");
+const u_ling = Const.Unit_ZergZergling;
+
+function imageAtOffset(image, location, x, y) {
+    const ox, oy = Utils.getLocationPoint(location);
+    addloc(location, x, y);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, ox, oy);
+}
+
+function deathAtOffset(pid, unit, location, x, y) {
+    const ox, oy = Utils.getLocationPoint(location);
+    addloc(location, x, y);
+    CreateUnit(1, unit, location, pid);
+    KillUnit(unit, pid);
+    setloc(location, ox, oy);
+}
+
+function splat0(location, frame) {
+    const pid = getcurpl();
+    const x, y = Utils.getLocationPoint(location);
+    if (frame == 0) {
+        CreateUnitWithProperties(6, u_ling, l_buffer, pid, UnitProperty(burrowed = true));
+        addloc(location, -17, -10);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 5, -20);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 18, -13);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 22, 5);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 3, 22);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, -20, 9);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        KillUnit(u_ling, pid);
+    } else if (frame == 1) {
+        CreateUnitWithProperties(6, u_ling, l_buffer, pid, UnitProperty(burrowed = true));
+        addloc(location, -32, -19);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 6, -40);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 33, -23);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 41, 7);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 8, 41);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, -42, 18);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        KillUnit(u_ling, pid);
+    } else if (frame == 2) {
+        CreateUnitWithProperties(6, u_ling, l_buffer, pid, UnitProperty(burrowed = true));
+        addloc(location, -51, -24);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, -2, -58);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 48, -33);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 59, 7);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 17, 58);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, -61, 19);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        KillUnit(u_ling, pid);
+    } else if (frame == 3) {
+        CreateUnitWithProperties(2, u_ling, l_buffer, pid, UnitProperty(burrowed = true));
+        addloc(location, 62, -43);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        addloc(location, 76, 16);
+        MoveUnit(1, u_ling, pid, l_buffer, location);
+        setloc(location, x, y);
+        KillUnit(u_ling, pid);
+    }
+}
+
+function flagcircle(image, location) {
+    const pid = getcurpl();
+    const x, y = Utils.getLocationPoint(location);
+    addloc(location, -64, 0);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -62, -17);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -56, -33);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -46, -46);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -33, -56);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -17, -62);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 0, -64);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 17, -62);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 33, -56);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 46, -46);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 56, -33);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 62, -17);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 64, 0);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 62, 17);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 56, 33);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 46, 46);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 33, 56);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 17, 62);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, 0, 64);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -17, 62);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -33, 56);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -46, 46);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -56, 33);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+    addloc(location, -62, 17);
+    Utils.createImageSpriteAtLocation(image, location);
+    setloc(location, x, y);
+}
+
+function isometricCircle(image, location, frame) {
+    if (frame == 0) {
+        imageAtOffset(image, location, -95, 9);
+        imageAtOffset(image, location, -83, -35);
+        imageAtOffset(image, location, -49, -67);
+        imageAtOffset(image, location, 0, -79);
+        imageAtOffset(image, location, 49, -67);
+        imageAtOffset(image, location, 83, -35);
+        imageAtOffset(image, location, 95, 9);
+        imageAtOffset(image, location, 83, 51);
+        imageAtOffset(image, location, 49, 83);
+        imageAtOffset(image, location, 0, 95);
+        imageAtOffset(image, location, -49, 83);
+        imageAtOffset(image, location, -83, 51);
+    } else if (frame == 1) {
+        imageAtOffset(image, location, -159, 9);
+        imageAtOffset(image, location, -145, -49);
+        imageAtOffset(image, location, -113, -88);
+        imageAtOffset(image, location, -65, -115);
+        imageAtOffset(image, location, 0, -128);
+        imageAtOffset(image, location, 65, -116);
+        imageAtOffset(image, location, 113, -88);
+        imageAtOffset(image, location, 144, -49);
+        imageAtOffset(image, location, 159, 8);
+        imageAtOffset(image, location, 145, 64);
+        imageAtOffset(image, location, 113, 102);
+        imageAtOffset(image, location, 65, 131);
+        imageAtOffset(image, location, 0, 143);
+        imageAtOffset(image, location, -65, 131);
+        imageAtOffset(image, location, -113, 103);
+        imageAtOffset(image, location, -145, 65);
+    } else if (frame == 2) {
+        imageAtOffset(image, location, -223, 9);
+        imageAtOffset(image, location, -213, -47);
+        imageAtOffset(image, location, -188, -90);
+        imageAtOffset(image, location, -149, -129);
+        imageAtOffset(image, location, -104, -154);
+        imageAtOffset(image, location, -54, -170);
+        imageAtOffset(image, location, 0, -176);
+        imageAtOffset(image, location, 55, -170);
+        imageAtOffset(image, location, 104, -154);
+        imageAtOffset(image, location, 149, -129);
+        imageAtOffset(image, location, 188, -90);
+        imageAtOffset(image, location, 213, -46);
+        imageAtOffset(image, location, 223, 9);
+        imageAtOffset(image, location, 213, 62);
+        imageAtOffset(image, location, 188, 106);
+        imageAtOffset(image, location, 150, 145);
+        imageAtOffset(image, location, 104, 170);
+        imageAtOffset(image, location, 54, 186);
+        imageAtOffset(image, location, 0, 192);
+        imageAtOffset(image, location, -54, 186);
+        imageAtOffset(image, location, -105, 170);
+        imageAtOffset(image, location, -149, 144);
+        imageAtOffset(image, location, -188, 106);
+        imageAtOffset(image, location, -213, 62);
+    }
+}
+
+function explosion_type0(location, frame) {
+    if (frame == 3) {
+        imageAtOffset(332, location, 0, 0);
+    } else if (frame == 0) {
+        imageAtOffset(530, location, -18, 0);
+        imageAtOffset(530, location, -6, -21);
+        imageAtOffset(530, location, 16, -8);
+        imageAtOffset(530, location, 32, 0);
+        imageAtOffset(530, location, 16, 22);
+        imageAtOffset(530, location, -4, 20);
+    } else if (frame == 1) {
+        imageAtOffset(530, location, -36, 2);
+        imageAtOffset(530, location, -15, -41);
+        imageAtOffset(530, location, 30, -32);
+        imageAtOffset(530, location, 57, -3);
+        imageAtOffset(530, location, 34, 38);
+        imageAtOffset(530, location, -12, 38);
+    } else if (frame == 2) {
+        imageAtOffset(530, location, -61, 6);
+        imageAtOffset(530, location, -27, -56);
+        imageAtOffset(530, location, 53, -44);
+        imageAtOffset(530, location, 81, -4);
+        imageAtOffset(530, location, 42, 50);
+        imageAtOffset(530, location, -17, 54);
+    }
+    return;
+}

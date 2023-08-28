@@ -1,0 +1,41 @@
+var mouseMoved = false;
+const mX = PVariable();  // synced mouse X coordinate
+const mY = PVariable();
+const mouse_left_down = PVariable();  // synced mouse X coordinate
+const mouse_right_down = PVariable();
+var myMouseX, myMouseY;  // local (desync)
+function onPluginStart() {
+    // share mouse related variables across plugins
+    EUDRegisterObjectToNamespace("mouseleftdown", mouse_left_down);
+    EUDRegisterObjectToNamespace("mouserightdown", mouse_right_down);
+    EUDRegisterObjectToNamespace("mouseMoved", mouseMoved);
+    EUDRegisterObjectToNamespace("mX", mX);
+    EUDRegisterObjectToNamespace("mY", mY);
+    EUDRegisterObjectToNamespace("myMouseX", myMouseX);
+    EUDRegisterObjectToNamespace("myMouseY", myMouseY);
+}
+const MOUSE_X, MOUSE_Y = EPD(0x6CDDC4), EPD(0x6CDDC8);
+function updateMouse() {
+    if (MemoryXEPD(MOUSE_X, Exactly, myMouseX, 4095)
+    && MemoryXEPD(MOUSE_Y, Exactly, myMouseY, 4095)) {
+        mouseMoved = false;
+        return;
+    }
+    mouseMoved = true;
+    myMouseX = maskread_epd(MOUSE_X, 4095);
+    myMouseY = maskread_epd(MOUSE_Y, 4095);
+}
+
+function beforeTriggerExec() {
+    updateMouse();
+}
+
+function afterTriggerExec() {
+    /*setcurpl(getuserplayerid());
+    foreach(p : EUDLoopPlayer()) {
+        const x, y = mX[p], mY[p];
+        if (x != -1 && y != -1) {
+            println("{:c}{:n}\x04's mouse: ({}, {})", p, p, x, y);
+        }
+    } */
+}

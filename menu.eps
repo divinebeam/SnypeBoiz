@@ -1,0 +1,569 @@
+import main;
+import sound;
+import mouse;
+import coord;
+
+//extended strings: "◁ ▷ ─ ━ ―";
+
+const line_t = [110, 126, 142, 158, 174, 190, 206, 222, 238, 254, 270];
+const line_b = [125, 141, 157, 173, 189, 205, 221, 237, 253, 269, 285];
+
+const l_play, r_play = 50, 105;
+const l_loadout0, r_loadout0 = 106, 184;
+const l_options0, r_options0 = 185, 257;
+const l_loadout1, r_loadout1 = 40, 131;
+const l_options1, r_options1 = 132, 214;
+
+const l_mode0, r_mode0 = 50, 148;
+const l_mode1, r_mode1 = 149, 250;
+const l_zone0, r_zone0 = 50, 148;
+const l_zone1, r_zone1 = 149, 250;
+const l_score0, r_score0 = 50, 148;
+const l_score1, r_score1 = 149, 250;
+const l_start, r_start = 40, 140;
+
+const l_augment, r_augment = 40, 175;
+const l_perk, r_perk = 40, 175;
+const l_equipment, r_equipment = 40, 175;
+
+const l_shback, r_shback = 40, 175;
+
+const l_smg_select, r_smg_select = 40, 175;
+const l_lmg_select, r_lmg_select = 40, 175;
+const l_dbl_select, r_dbl_select = 40, 175;
+const l_prc_select, r_prc_select = 40, 175;
+
+const l_frag_select, r_frag_select = 40, 170;
+const l_smoke_select, r_smoke_select = 171, 310;
+const l_stun_select, r_stun_select = 40, 170;
+const l_mine_select, r_mine_select = 171, 310;
+const l_c4_select, r_c4_select = 40, 170;
+const l_stim_select, r_stim_select = 171, 310;
+const l_tactins_select, r_tactins_select = 40, 170;
+const l_knife_select, r_knife_select = 171, 310;
+
+const screen = StringBuffer(256);
+
+const main_page = EUDArray(8);
+const loadout_page = EUDArray(8);
+const mouse_x = EUDArray(8);
+const mouse_y = EUDArray(8);
+const local_hover = EUDArray(8);
+
+var game_mode;
+var game_zone;
+var ffa_score = 2500;
+var tdm_score = 2000;
+var ctf_score = 3;
+
+function getLocalMouse() {
+    const MOUSEX, MOUSEY = EPD(0x6CDDC4), EPD(0x6CDDC8);
+    const x = maskread_epd(MOUSEX, 4095);
+    const y = maskread_epd(MOUSEY, 4095);
+    return x, y;
+}
+
+function getSyncedMouse() {
+    const pid = getcurpl();
+    if (mouse.mX[pid] != -1) mouse_x[pid], mouse_y[pid] = mouse.mX[pid], mouse.mY[pid];
+    return mouse_x[pid], mouse_y[pid];
+}
+
+function cursorAtCoords(line, left, right) {
+    const top, bottom = line_t[line], line_b[line];
+    const x, y = getLocalMouse();
+    if (x >= left && x <= right && y >= top && y <= bottom) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function cursorAtCoordsSynced(line, left, right) {
+    const top, bottom = line_t[line], line_b[line];
+    const x, y = getSyncedMouse();
+    if (x >= left && x <= right && y >= top && y <= bottom) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function checkInput() {
+    const pid = getcurpl();
+    const leftclick = mouse.mouse_left_down[pid];
+    const rightclick = mouse.mouse_right_down[pid];
+    if (main.game_state == 0) {
+        if (cursorAtCoordsSynced(0, l_play, r_play) && leftclick) {main_page[pid] = 0; sound.select0();}
+        else if (cursorAtCoordsSynced(0, l_loadout0, r_loadout0) && leftclick) {main_page[pid] = 1; loadout_page[pid] = 0; sound.select0();}
+        else if (cursorAtCoordsSynced(0, l_options0, r_options0) && leftclick) {main_page[pid] = 2; sound.select0();}
+    } else if (main.game_state > 0) {
+        if (cursorAtCoordsSynced(0, l_loadout1, r_loadout1) && leftclick) {main_page[pid] = 1; loadout_page[pid] = 0; sound.select0();}
+        else if (cursorAtCoordsSynced(0, l_options1, r_options1) && leftclick) {main_page[pid] = 2; sound.select0();}
+    }
+
+    if (main_page[pid] == 0) {
+        if (main.isHost()) {
+            if (cursorAtCoordsSynced(2, l_mode0, r_mode0) && leftclick) {
+                if (game_mode > 0) game_mode--;
+                else if (game_mode == 0) game_mode = 2;
+                sound.select0();
+            } else if (cursorAtCoordsSynced(2, l_mode1, r_mode1) && leftclick) {
+                if (game_mode < 2) game_mode++;
+                else if (game_mode == 2) game_mode = 0;
+                sound.select0();
+            } else if (cursorAtCoordsSynced(3, l_zone0, r_zone0) && leftclick) {
+                if (game_zone > 0) game_zone--;
+                else if (game_zone == 0) game_zone = 7;
+                sound.select0();
+            } else if (cursorAtCoordsSynced(3, l_zone1, r_zone1) && leftclick) {
+                if (game_zone < 7) game_zone++;
+                else if (game_zone == 7) game_zone = 0;
+                sound.select0();
+            } else if (cursorAtCoordsSynced(4, l_score0, r_score0) && leftclick) {
+                if (game_mode == 0) {
+                    if (ffa_score > 1000) ffa_score -= 500;
+                    else if (ffa_score == 1000) ffa_score = 5000;
+                } else if (game_mode == 1) {
+                    if (tdm_score > 1000) tdm_score -= 500;
+                    else if (tdm_score == 1000) tdm_score = 5000;
+                } else if (game_mode == 2) {
+                    if (ctf_score > 1) ctf_score -= 1;
+                    else if (ctf_score == 1) ctf_score = 10;
+                }
+                sound.select0();
+            } else if (cursorAtCoordsSynced(4, l_score1, r_score1) && leftclick) {
+                if (game_mode == 0) {
+                    if (ffa_score < 5000) ffa_score += 500;
+                    else if (ffa_score == 5000) ffa_score = 1000;
+                } else if (game_mode == 1) {
+                    if (tdm_score < 5000) tdm_score += 500;
+                    else if (tdm_score == 5000) tdm_score = 1000;
+                } else if (game_mode == 2) {
+                    if (ctf_score < 10) ctf_score += 1;
+                    else if (ctf_score == 10) ctf_score = 1;
+                }
+                sound.select0();
+            } else if (cursorAtCoordsSynced(6, l_start, r_start) && leftclick) {
+                main.initializeMatch();
+                sound.select0();
+            }
+        }
+    } else if (main_page[pid] == 1) {
+        if (loadout_page[pid] == 0) {
+            if (cursorAtCoordsSynced(2, l_augment, r_augment) && leftclick) {loadout_page[pid] = 1; sound.select0();}
+            else if (cursorAtCoordsSynced(3, l_perk, r_perk) && leftclick) {loadout_page[pid] = 2; sound.select0();}
+            else if (cursorAtCoordsSynced(4, l_equipment, r_equipment) && leftclick) {loadout_page[pid] = 3; sound.select0();}
+        } else if (loadout_page[pid] == 1) {
+            if (cursorAtCoordsSynced(2, l_smg_select, r_smg_select) && leftclick) {main.selected_augment[pid] = 0; sound.select1();}
+            else if (cursorAtCoordsSynced(3, l_lmg_select, r_lmg_select) && leftclick) {main.selected_augment[pid] = 1; sound.select1();}
+            else if (cursorAtCoordsSynced(4, l_dbl_select, r_dbl_select) && leftclick) {main.selected_augment[pid] = 2; sound.select1();}
+            else if (cursorAtCoordsSynced(5, l_prc_select, r_prc_select) && leftclick) {main.selected_augment[pid] = 3; sound.select1();}
+            else if (cursorAtCoordsSynced(1, l_shback, r_shback) && leftclick) {loadout_page[pid] = 0; sound.select0();}
+        } else if (loadout_page[pid] == 2) {
+            if (cursorAtCoordsSynced(1, l_shback, r_shback) && leftclick) {loadout_page[pid] = 0; sound.select0();}
+        } else if (loadout_page[pid] == 3) {
+            if (cursorAtCoordsSynced(2, l_frag_select, r_frag_select) && leftclick) {main.selected_equipment[pid] = 0; sound.select1();}
+            else if (cursorAtCoordsSynced(2, l_smoke_select, r_smoke_select) && leftclick) {main.selected_equipment[pid] = 1; sound.select1();}
+            else if (cursorAtCoordsSynced(3, l_stun_select, r_stun_select) && leftclick) {main.selected_equipment[pid] = 2; sound.select1();}
+            else if (cursorAtCoordsSynced(3, l_mine_select, r_mine_select) && leftclick) {main.selected_equipment[pid] = 3; sound.select1();}
+            else if (cursorAtCoordsSynced(4, l_c4_select, r_c4_select) && leftclick) {main.selected_equipment[pid] = 4; sound.select1();}
+            else if (cursorAtCoordsSynced(4, l_stim_select, r_stim_select) && leftclick) {main.selected_equipment[pid] = 5; sound.select1();}
+            else if (cursorAtCoordsSynced(5, l_tactins_select, r_tactins_select) && leftclick) {main.selected_equipment[pid] = 6; sound.select1();}
+            else if (cursorAtCoordsSynced(5, l_knife_select, r_knife_select) && leftclick) {main.selected_equipment[pid] = 7; sound.select1();}
+            else if (cursorAtCoordsSynced(1, l_shback, r_shback) && leftclick) {loadout_page[pid] = 0; sound.select0();}
+        }
+    } else if (main_page[pid] == 2) {
+        
+    }
+
+}
+
+function updateLocalHover() {
+    const pid = getcurpl();
+    var new_hover = 0;
+
+    if (main.game_state == 0) {
+        if (cursorAtCoords(0, l_play, r_play)) new_hover = 1;
+        else if (cursorAtCoords(0, l_loadout0, r_loadout0)) new_hover = 2;
+        else if (cursorAtCoords(0, l_options0, r_options0)) new_hover = 3;
+    } else if (main.game_state > 0) {
+        if (cursorAtCoords(0, l_loadout1, r_loadout1)) new_hover = 2;
+        else if (cursorAtCoords(0, l_options1, r_options1)) new_hover = 3;
+    }
+
+    if (main_page[pid] == 0 && main.isHost()) {
+        if (cursorAtCoords(2, l_mode0, r_mode0)) new_hover = 4;
+        else if (cursorAtCoords(2, l_mode1, r_mode1)) new_hover = 5;
+        else if (cursorAtCoords(3, l_zone0, r_zone0)) new_hover = 6;
+        else if (cursorAtCoords(3, l_zone1, r_zone1)) new_hover = 7;
+        else if (cursorAtCoords(4, l_score0, r_score0)) new_hover = 8;
+        else if (cursorAtCoords(4, l_score1, r_score1)) new_hover = 9;
+        else if (cursorAtCoords(6, l_start, r_start)) new_hover = 10;
+    } else if (main_page[pid] == 1) {
+        if (loadout_page[pid] == 0) {
+            if (cursorAtCoords(2, l_augment, r_augment)) new_hover = 1001;
+            else if (cursorAtCoords(3, l_perk, r_perk)) new_hover = 1002;
+            else if (cursorAtCoords(4, l_equipment, r_equipment)) new_hover = 1003;
+        } else if (loadout_page[pid] == 1) {
+            if (cursorAtCoords(2, l_smg_select, r_smg_select)) new_hover = 1101;
+            else if (cursorAtCoords(3, l_lmg_select, r_lmg_select)) new_hover = 1102;
+            else if (cursorAtCoords(4, l_dbl_select, r_dbl_select)) new_hover = 1103;
+            else if (cursorAtCoords(5, l_prc_select, r_prc_select)) new_hover = 1104;
+            else if (cursorAtCoords(1, l_shback, r_shback)) new_hover = 1110;
+        } else if (loadout_page[pid] == 2) {
+            if (cursorAtCoords(1, l_shback, r_shback)) new_hover = 1110;
+        } else if (loadout_page[pid] == 3) {
+            if (cursorAtCoords(2, l_frag_select, r_frag_select)) new_hover = 1301;
+            else if (cursorAtCoords(2, l_smoke_select, r_smoke_select)) new_hover = 1302;
+            else if (cursorAtCoords(3, l_stun_select, r_stun_select)) new_hover = 1303;
+            else if (cursorAtCoords(3, l_mine_select, r_mine_select)) new_hover = 1304;
+            else if (cursorAtCoords(4, l_c4_select, r_c4_select)) new_hover = 1305;
+            else if (cursorAtCoords(4, l_stim_select, r_stim_select)) new_hover = 1306;
+            else if (cursorAtCoords(5, l_tactins_select, r_tactins_select)) new_hover = 1307;
+            else if (cursorAtCoords(5, l_knife_select, r_knife_select)) new_hover = 1308;
+            if (cursorAtCoords(1, l_shback, r_shback)) new_hover = 1110;
+        }
+    } else if (main_page[pid] == 2) {
+        
+    }
+
+    if (new_hover != local_hover[pid]) {
+        local_hover[pid] = new_hover;
+        if (new_hover > 0) sound.scroll();
+    }
+}
+
+function getHeader() {
+    const pid = getcurpl();
+    var btn_play = Db("\x04[PLAY]");
+    var btn_loadout = Db("\x04[LOADOUT]");
+    var btn_options = Db("\x04[OPTIONS]");
+    var string = Db(512);
+    if (main.game_state == 0) {
+        if (local_hover[pid] == 1) btn_play = Db("\x06[PLAY]");
+        else if (main_page[pid] == 0) btn_play = Db("\x11[PLAY]");
+        if (local_hover[pid] == 2) btn_loadout = Db("\x06[LOADOUT]"); //have sex with gf... so much... a lot... too many time?? no... never!!!!
+        else if (main_page[pid] == 1) btn_loadout = Db("\x11[LOADOUT]");
+        if (local_hover[pid] == 3) btn_options = Db("\x06[OPTIONS]");
+        else if (main_page[pid] == 2) btn_options = Db("\x11[OPTIONS]");
+        if (main_page[pid] == 0) sprintf(string, "\x09\x09\x04―<{:s}\x04>―――{:s}\x04――――{:s}\x04――", btn_play, btn_loadout, btn_options);
+        else if (main_page[pid] == 1) sprintf(string, "\x09\x09\x04――{:s}\x04―――<{:s}\x04>―――{:s}\x04――", btn_play, btn_loadout, btn_options);
+        else if (main_page[pid] == 2) sprintf(string, "\x09\x09\x04――{:s}\x04――――{:s}\x04―――<{:s}\x04>―", btn_play, btn_loadout, btn_options);
+    } else if (main.game_state > 0) {
+        if (local_hover[pid] == 2) btn_loadout = Db("\x06[LOADOUT]");
+        else if (main_page[pid] == 1) btn_loadout = Db("\x11[LOADOUT]");
+        if (local_hover[pid] == 3) btn_options = Db("\x06[OPTIONS]");
+        else if (main_page[pid] == 2) btn_options = Db("\x11[OPTIONS]");
+        if (main_page[pid] == 1) sprintf(string, "\x09\x09\x04―<{:s}\x04>―――{:s}\x04――", btn_loadout, btn_options);
+        else if (main_page[pid] == 2) sprintf(string, "\x09\x09\x04――{:s}\x04―――<{:s}\x04>―", btn_loadout, btn_options);
+    }
+    return string;
+}
+
+function getSubHeader() {
+    const pid = getcurpl();
+    var string = Db(512);
+    if (main_page[pid] == 0) {
+        string = Db("\x0BNothing");
+    } else if (main_page[pid] == 1) {
+        if (loadout_page[pid] == 0) {
+            string = Db("\x0BNothing");
+        } else if (loadout_page[pid] >= 1 && loadout_page[pid] <= 3) {
+            if (local_hover[pid] == 1110) string = Db("\x09\x09\x06← Go Back");
+            else string = Db("\x09\x09\x1B← Go Back");
+        }
+    } else if (main_page[pid] == 2) {
+        string = Db("\x0BNothing");
+    }
+    return string;
+}
+
+function getGameOption(line) {
+    const pid = getcurpl();
+    var string = Db(512);
+    if (line == 2) {
+        var arrow_l = Db("\x04[◀]");
+        var arrow_r = Db("\x04[▶]");
+        if (local_hover[pid] == 4) arrow_l = Db("\x06[◀]");
+        else if (local_hover[pid] == 5) arrow_r = Db("\x06[▶]");
+        var btn_mode = Db("\x1FFree For All\x09\x09\x09");
+        if (main.game_mode == 1) btn_mode = Db("\x1FTeam Deathmatch\x09");
+        else if (main.game_mode == 2) btn_mode = Db("\x1FCapture The Flag\x09");
+        sprintf(string, "\x09\x09{:s}\x09\x04Mode:\x09{:s}{:s}", arrow_l, btn_mode, arrow_r);
+    } else if (line == 3) {
+        var arrow_l = Db("\x04[◀]");
+        var arrow_r = Db("\x04[▶]");
+        if (local_hover[pid] == 6) arrow_l = Db("\x06[◀]");
+        else if (local_hover[pid] == 7) arrow_r = Db("\x06[▶]");
+        var btn_zone = Db("\x1FBadlands\x09\x09\x09");
+        if (main.game_zone == 1) btn_zone = Db("\x1FWarehouse\x09\x09\x09");
+        else if (main.game_zone == 2) btn_zone = Db("\x1FCaves\x09\x09\x09\x09");
+        else if (main.game_zone == 3) btn_zone = Db("\x1FOverpass\x09\x09\x09");
+        else if (main.game_zone == 4) btn_zone = Db("\x1FLaboratory\x09\x09\x09");
+        else if (main.game_zone == 5) btn_zone = Db("\x1FMarket\x09\x09\x09\x09");
+        else if (main.game_zone == 6) btn_zone = Db("\x1FBrescent Byne\x09\x09");
+        else if (main.game_zone == 7) btn_zone = Db("\x1FDoom II\x09\x09\x09\x09");
+        sprintf(string, "\x09\x09{:s}\x09\x04Zone:\x09{:s}{:s}", arrow_l, btn_zone, arrow_r);
+    } else if (line == 4) {
+        var arrow_l = Db("\x04[◀]");
+        var arrow_r = Db("\x04[▶]");
+        if (local_hover[pid] == 8) arrow_l = Db("\x06[◀]");
+        else if (local_hover[pid] == 9) arrow_r = Db("\x06[▶]");
+        var score;
+        if (game_mode == 0) score = ffa_score;
+        else if (game_mode == 1) score = tdm_score;
+        else if (game_mode == 2) score = ctf_score;
+        if (game_mode == 2) sprintf(string, "\x09\x09{:s}\x09\x04Score:\x09\x1F{}\x09\x09\x09\x09\x09{:s}", arrow_l, score, arrow_r);
+        else sprintf(string, "\x09\x09{:s}\x09\x04Score:\x09\x1F{}\x09\x09\x09\x09{:s}", arrow_l, score, arrow_r);
+    } else if (line == 5) {
+        string = Db("\x0BNothing");
+    } else if (line == 6) {
+        if (main.isHost()) {
+            var btn_start = Db("\x04[START MATCH]");
+            if (local_hover[pid] == 10) btn_start = Db("\x06[START MATCH]");
+            sprintf(string, "\x09\x09{:s}", btn_start);
+        } else {
+            string = Db("\x0BNothing");
+        }
+    }
+    return string;
+}
+
+function getLoadout0(line) {
+    const pid = getcurpl();
+    var string = Db(512);
+    if (line == 2) {
+        var btn_augment = Db("\x02Augment:");
+        if (local_hover[pid] == 1001) btn_augment = Db("\x06Augment:");
+        var btn_equipped = Db("\x04--");
+        if (main.selected_augment[pid] == 0) btn_equipped = Db("\x04Submachine Gun");
+        else if (main.selected_augment[pid] == 1) btn_equipped = Db("\x04Light Machine Gun");
+        else if (main.selected_augment[pid] == 2) btn_equipped = Db("\x04Double Barrel Shotgun");
+        else if (main.selected_augment[pid] == 3) btn_equipped = Db("\x04Precision Rifle");
+        sprintf(string, "\x09\x09{:s}\x09{:s}", btn_augment, btn_equipped);
+    } else if (line == 3) {
+        var btn_perk = Db("\x02Perk:");
+        if (local_hover[pid] == 1002) btn_perk = Db("\x06Perk:");
+        var btn_equipped = Db("\x04--");
+
+        sprintf(string, "\x09\x09{:s}\x09\x09{:s}", btn_perk, btn_equipped);
+    } else if (line == 4) {
+        var btn_equipment = Db("\x02Equipment:");
+        if (local_hover[pid] == 1003) btn_equipment = Db("\x06Equipment:");
+        var btn_equipped = Db("\x04--");
+        if (main.selected_equipment[pid] == 0) btn_equipped = Db("\x04Frag Grenade");
+        else if (main.selected_equipment[pid] == 1) btn_equipped = Db("\x04Smoke Grenade");
+        else if (main.selected_equipment[pid] == 2) btn_equipped = Db("\x04Flash Grenade");
+        else if (main.selected_equipment[pid] == 3) btn_equipped = Db("\x04Proximity Mine");
+        else if (main.selected_equipment[pid] == 4) btn_equipped = Db("\x04C4 Explosive");
+        else if (main.selected_equipment[pid] == 5) btn_equipped = Db("\x04Combat Stim");
+        else if (main.selected_equipment[pid] == 6) btn_equipped = Db("\x04Tactical Insertion");
+        else if (main.selected_equipment[pid] == 7) btn_equipped = Db("\x04Throwing Knife");
+        sprintf(string, "\x09\x09{:s}\x09{:s}", btn_equipment, btn_equipped);
+    } else if (line == 5) {
+        string = Db("\x0BNothing");
+    } else if (line == 6) {
+        string = Db("\x0BNothing");
+    }
+    return string;
+}
+
+function getLoadout1(line) {
+    const pid = getcurpl();
+    var string = Db(512);
+    if (line == 2) {
+        var arrow = Db("\x04");
+        if (main.selected_augment[pid] == 0) arrow = Db("\x11>");
+        var btn_augment = Db("Submachine Gun");
+        if (local_hover[pid] == 1101) btn_augment = Db("\x06Submachine Gun");
+        var description = Db("\x02Fast rate of fire, low damage. Good for close encounters.");
+        sprintf(string, "\x09\x09{:s}\x09{:s}\x09\x09{:s}", arrow, btn_augment, description);
+    } else if (line == 3) {
+        var arrow = Db("\x04");
+        if (main.selected_augment[pid] == 1) arrow = Db("\x11>");
+        var btn_augment = Db("Light Machine Gun");
+        if (local_hover[pid] == 1102) btn_augment = Db("\x06Light Machine Gun");
+        var description = Db("\x02Slow rate of fire, medium damage. Good for more accurate play from a distance.");
+        sprintf(string, "\x09\x09{:s}\x09{:s}\x09\x09{:s}", arrow, btn_augment, description);
+    } else if (line == 4) {
+        var arrow = Db("\x04");
+        if (main.selected_augment[pid] == 2) arrow = Db("\x11>");
+        var btn_augment = Db("Double Barrel Shotgun");
+        if (local_hover[pid] == 1103) btn_augment = Db("\x06Double Barrel Shotgun");
+        var description = Db("\x02Inaccurate and messy but very high damage up close.");
+        sprintf(string, "\x09\x09{:s}\x09{:s}\x09{:s}", arrow, btn_augment, description);
+    } else if (line == 5) {
+        var arrow = Db("\x04");
+        if (main.selected_augment[pid] == 3) arrow = Db("\x11>");
+        var btn_augment = Db("Precision Rifle");
+        if (local_hover[pid] == 1104) btn_augment = Db("\x06Precision Rifle");
+        var description = Db("\x02Perfectly accurate weapon meant for cross map snypes.");
+        sprintf(string, "\x09\x09{:s}\x09{:s}\x09\x09\x09{:s}", arrow, btn_augment, description);
+    } else if (line == 6) {
+        string = Db("\x0BNothing");
+    }
+    return string;
+}
+
+function getLoadout2(line) {
+    const pid = getcurpl();
+    var string = Db(512);
+    if (line == 2) {
+        string = Db("\x0BNothing");
+    } else if (line == 3) {
+        string = Db("\x0BNothing");
+    } else if (line == 4) {
+        string = Db("\x0BNothing");
+    } else if (line == 5) {
+        string = Db("\x0BNothing");
+    } else if (line == 6) {
+        string = Db("\x0BNothing");
+    }
+    return string;
+}
+
+function getLoadout3(line) {
+    const pid = getcurpl();
+    var string = Db(512);
+    if (line == 2) {
+        var arrow_a = Db("\x04");
+        var arrow_b = Db("\x04");
+        if (main.selected_equipment[pid] == 0) arrow_a = Db("\x11>");
+        else if (main.selected_equipment[pid] == 1) arrow_b = Db("\x11>");
+        var btn_equipm_a = Db("Frag Grenade");
+        var btn_equipm_b = Db("Smoke Grenade");
+        if (local_hover[pid] == 1301) btn_equipm_a = Db("\x06Frag Grenade");
+        else if (local_hover[pid] == 1302) btn_equipm_b = Db("\x06Smoke Grenade");
+        sprintf(string, "\x09\x09{:s}\x09{:s}\x09\x09\x09{:s}\x09{:s}", arrow_a, btn_equipm_a, arrow_b, btn_equipm_b);
+    } else if (line == 3) {
+        var arrow_a = Db("\x04");
+        var arrow_b = Db("\x04");
+        if (main.selected_equipment[pid] == 2) arrow_a = Db("\x11>");
+        else if (main.selected_equipment[pid] == 3) arrow_b = Db("\x11>");
+        var btn_equipm_a = Db("Flash Grenade");
+        var btn_equipm_b = Db("Proximity Mine");
+        if (local_hover[pid] == 1303) btn_equipm_a = Db("\x06Flash Grenade");
+        else if (local_hover[pid] == 1304) btn_equipm_b = Db("\x06Proximity Mine");
+        sprintf(string, "\x09\x09{:s}\x09{:s}\x09\x09\x09{:s}\x09{:s}", arrow_a, btn_equipm_a, arrow_b, btn_equipm_b);
+    } else if (line == 4) {
+        var arrow_a = Db("\x04");
+        var arrow_b = Db("\x04");
+        if (main.selected_equipment[pid] == 4) arrow_a = Db("\x11>");
+        else if (main.selected_equipment[pid] == 5) arrow_b = Db("\x11>");
+        var btn_equipm_a = Db("C4 Explosive");
+        var btn_equipm_b = Db("Combat Stim");
+        if (local_hover[pid] == 1305) btn_equipm_a = Db("\x06C4 Explosive");
+        else if (local_hover[pid] == 1306) btn_equipm_b = Db("\x06Combat Stim");
+        sprintf(string, "\x09\x09{:s}\x09{:s}\x09\x09\x09{:s}\x09{:s}", arrow_a, btn_equipm_a, arrow_b, btn_equipm_b);
+    } else if (line == 5) {
+        var arrow_a = Db("\x04");
+        var arrow_b = Db("\x04");
+        if (main.selected_equipment[pid] == 6) arrow_a = Db("\x11>");
+        else if (main.selected_equipment[pid] == 7) arrow_b = Db("\x11>");
+        var btn_equipm_a = Db("Tactical Insertion");
+        var btn_equipm_b = Db("Throwing Knife");
+        if (local_hover[pid] == 1307) btn_equipm_a = Db("\x06Tactical Insertion");
+        else if (local_hover[pid] == 1308) btn_equipm_b = Db("\x06Throwing Knife");
+        sprintf(string, "\x09\x09{:s}\x09{:s}\x09\x09{:s}\x09{:s}", arrow_a, btn_equipm_a, arrow_b, btn_equipm_b);
+    } else if (line == 6) {
+        string = Db("\x0BNothing");
+    }
+    return string;
+}
+
+function getLine(line) {
+    const pid = getcurpl();
+    var string = Db(512);
+    if (main_page[pid] == 0) {
+        string = getGameOption(line);
+    } else if (main_page[pid] == 1) {
+        if (loadout_page[pid] == 0) string = getLoadout0(line);
+        else if (loadout_page[pid] == 1) string = getLoadout1(line);
+        else if (loadout_page[pid] == 2) string = getLoadout2(line);
+        else if (loadout_page[pid] == 3) string = getLoadout3(line);
+    } else if (main_page[pid] == 2) {
+        string = Db("\x0BNothing");
+    }
+    return string;
+}
+
+function getFooter() {
+    const pid = getcurpl();
+    var string = Db(512);
+    if (local_hover[pid] == 1) string = Db("\x09\x09\x02Click to view and change match options.");
+    else if (local_hover[pid] == 2) string = Db("\x09\x09\x02Click to view and modify your Loadout.");
+    else if (local_hover[pid] == 3) string = Db("\x09\x09\x02Click to view and change personal game preferences.");
+    else if (local_hover[pid] >= 4 && local_hover[pid] <= 10 && main.isHost()) {
+        if (local_hover[pid] >= 4 && local_hover[pid] <= 5) string = Db("\x09\x09\x02Click to modify currently selected match Mode.");
+        if (local_hover[pid] >= 6 && local_hover[pid] <= 7) string = Db("\x09\x09\x02Click to modify currently selected play Zone.");
+        if (local_hover[pid] >= 8 && local_hover[pid] <= 9) string = Db("\x09\x09\x02Click to modify maximum score required to win the match.");
+        if (local_hover[pid] == 10) string = Db("\x09\x09\x02Click to start the Match.");
+    }
+    else if (local_hover[pid] == 1001) string = Db("\x09\x09\x02Click to browse or change your Augment.");
+    else if (local_hover[pid] == 1002) string = Db("\x09\x09\x02Click to browse or change your current Perk.");
+    else if (local_hover[pid] == 1003) string = Db("\x09\x09\x02Click to browse or change your selected Equipment.");
+    else {
+        if (main_page[pid] == 0 && main.isHost() == false) sprintf(string, "\x09\x09{:c}{:p} \x02is the host. Wait for them to make a selection.", main.host, main.host);
+        else string = Db("\x0BNothing");
+    }
+    return string;
+}
+
+function pingSelectedZone() {
+    if (game_zone == 0) setloc(main.l_main, coord.x_zone0_center, coord.y_zone0_center);
+    else if (game_zone == 1) setloc(main.l_main, coord.x_zone1_center, coord.y_zone1_center);
+    else if (game_zone == 2) setloc(main.l_main, coord.x_zone2_center, coord.y_zone2_center);
+    else if (game_zone == 3) setloc(main.l_main, coord.x_zone3_center, coord.y_zone3_center);
+    else if (game_zone == 4) setloc(main.l_main, coord.x_zone4_center, coord.y_zone4_center);
+    else if (game_zone == 5) setloc(main.l_main, coord.x_zone5_center, coord.y_zone5_center);
+    else if (game_zone == 6) setloc(main.l_main, coord.x_zone6_center, coord.y_zone6_center);
+    else if (game_zone == 7) setloc(main.l_main, coord.x_zone7_center, coord.y_zone7_center);
+    MinimapPing(main.l_main);
+}
+
+function updateDisplay() {
+    const pid = getcurpl();
+    var display_line0 = Db("line0");
+    var display_line1 = Db("line1");
+    var display_line2 = Db("line2");
+    var display_line3 = Db("line3");
+    var display_line4 = Db("line4");
+    var display_line5 = Db("line5");
+    var display_line6 = Db("line6");
+    var display_line7 = Db("line7");
+
+    if (main_page[pid] == 0 && main.game_state > 0) main_page[pid] = 1;
+
+    checkInput();
+
+    updateLocalHover();
+
+    display_line0 = getHeader();
+    screen.printfAt(0, "{:s}", display_line0);
+
+    display_line1 = getSubHeader();
+    screen.printfAt(1, "{:s}", display_line1);
+
+    display_line2 = getLine(2);
+    screen.printfAt(2, "{:s}", display_line2);
+
+    display_line3 = getLine(3);
+    screen.printfAt(3, "{:s}", display_line3);
+
+    display_line4 = getLine(4);
+    screen.printfAt(4, "{:s}", display_line4);
+
+    display_line5 = getLine(5);
+    screen.printfAt(5, "{:s}", display_line5);
+
+    display_line6 = getLine(6);
+    screen.printfAt(6, "{:s}", display_line6);
+
+    display_line7 = getFooter();
+    screen.printfAt(7, "{:s}", display_line7);
+
+    pingSelectedZone();
+
+    return game_mode, game_zone, ffa_score, tdm_score, ctf_score;
+}

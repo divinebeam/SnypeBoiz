@@ -1,0 +1,179 @@
+import main;
+
+var team0_score;
+var team1_score;
+var team2_score;
+var team3_score;
+const session_score = [0,0,0,0,0,0,0,0];
+const current_score = [0,0,0,0,0,0,0,0];
+const current_flagscore = [0,0,0,0,0,0,0,0];
+const recent_score = [0,0,0,0,0,0,0,0];
+const display_amount = [0,0,0,0,0,0,0,0];
+const recent_timer = [0,0,0,0,0,0,0,0];
+const display_kill = [0,0,0,0,0,0,0,0];
+const display_execute = [0,0,0,0,0,0,0,0];
+const display_assist = [0,0,0,0,0,0,0,0];
+const display_swag = EUDArray(8);
+const display_longshot = EUDArray(8);
+
+const kill_reward = 100;
+const execute_reward = 25;
+const swag_reward = 10;
+const longshot_reward = 25;
+
+const screen = StringBuffer(256);
+
+function updateLeaderBoard() {
+    const pid = getcurpl();
+    if (main.game_mode == 0) {
+        SetScore(pid, SetTo, current_score[pid], Custom);
+    } else if (main.game_mode == 1) {
+        team0_score = 0;
+        team1_score = 0;
+        team2_score = 0;
+        team3_score = 0;
+        for (var i = 0 ; i < 8 ; i++) {
+            if (main.team[i] == 0) {team0_score += current_score[i];}
+            if (main.team[i] == 1) {team1_score += current_score[i];}
+            if (main.team[i] == 2) {team2_score += current_score[i];}
+            if (main.team[i] == 3) {team3_score += current_score[i];}
+        }   
+        for (var i = 0 ; i < 8 ; i++) {
+            if (main.team[i] == 0) {SetScore(i, SetTo, team0_score, Custom);}
+            if (main.team[i] == 1) {SetScore(i, SetTo, team1_score, Custom);}
+            if (main.team[i] == 2) {SetScore(i, SetTo, team2_score, Custom);}
+            if (main.team[i] == 3) {SetScore(i, SetTo, team3_score, Custom);}
+        }  
+    } else if (main.game_mode == 2) {
+        team0_score = 0;
+        team1_score = 0;
+        team2_score = 0;
+        team3_score = 0;
+        for (var i = 0 ; i < 8 ; i++) {
+            if (main.team[i] == 0) {team0_score += current_flagscore[i];}
+            if (main.team[i] == 1) {team1_score += current_flagscore[i];}
+            if (main.team[i] == 2) {team2_score += current_flagscore[i];}
+            if (main.team[i] == 3) {team3_score += current_flagscore[i];}
+        }   
+        for (var i = 0 ; i < 8 ; i++) {
+            if (main.team[i] == 0) {SetScore(i, SetTo, team0_score, Custom);}
+            if (main.team[i] == 1) {SetScore(i, SetTo, team1_score, Custom);}
+            if (main.team[i] == 2) {SetScore(i, SetTo, team2_score, Custom);}
+            if (main.team[i] == 3) {SetScore(i, SetTo, team3_score, Custom);}
+        }  
+    }
+}
+
+function addKill() {
+    const pid = getcurpl();
+    current_score[pid] += kill_reward;
+    recent_score[pid] += kill_reward;
+    recent_timer[pid] = 72;
+    display_kill[pid] = 1;
+    updateLeaderBoard();
+}
+
+function addAssist(damageamount) {
+    const pid = getcurpl();
+    current_score[pid] += damageamount;
+    recent_score[pid] += damageamount;
+    recent_timer[pid] = 72;
+    display_assist[pid] = 1;
+    updateLeaderBoard();
+}
+
+function addExecution() {
+    const pid = getcurpl();
+    current_score[pid] += execute_reward;
+    recent_score[pid] += execute_reward;
+    recent_timer[pid] = 72;
+    display_execute[pid] = 1;
+    updateLeaderBoard();
+}
+
+function addSwag() {
+    const pid = getcurpl();
+    current_score[pid] += swag_reward;
+    recent_score[pid] += swag_reward;
+    recent_timer[pid] = 72;
+    display_swag[pid] = 1;
+    updateLeaderBoard();
+}
+
+function addLongshot() {
+    const pid = getcurpl();
+    current_score[pid] += longshot_reward;
+    recent_score[pid] += longshot_reward;
+    recent_timer[pid] = 72;
+    display_longshot[pid] = 1;
+    updateLeaderBoard();
+}
+
+function addFlagScore(id, flagfollowid) {
+    const pid = flagfollowid - 1;
+    current_flagscore[pid] += 1;
+    updateLeaderBoard();
+}
+
+function updateDisplay() {
+    const pid = getcurpl();
+    var displayed_kill = false;
+    var displayed_execute = false;
+    var displayed_assist = false;
+    var displayed_swag = false;
+    var displayed_longshot = false;
+    if (recent_timer[pid] > 0) {
+        if (recent_score[pid] == 0) recent_timer[pid]--;
+        if (recent_score[pid] > 0) {
+            if (recent_score[pid] >= 50) {display_amount[pid] += 50; recent_score[pid] -= 50;}
+            else if (recent_score[pid] >= 5) {display_amount[pid] += 5; recent_score[pid] -= 5;}
+            else if (recent_score[pid] >= 1) {display_amount[pid] += 1; recent_score[pid] -= 1;}
+        }
+        
+        screen.printfAt(0, "\x09\x09\x09\x1F+{}", display_amount[pid]);
+        for (var i = 1 ; i < 5 ; i++) {
+            if (display_kill[pid] && displayed_kill == false) {
+                displayed_kill = true;
+                screen.printfAt(i, "\x09\x09\x09\x04Kill!");
+            }
+            else if (display_execute[pid] && displayed_execute == false) {
+                displayed_execute = true;
+                screen.printfAt(i, "\x09\x09\x09\x04Execution!");
+            }
+            else if (display_assist[pid] && displayed_assist == false) {
+                displayed_assist = true;
+                screen.printfAt(i, "\x09\x09\x09\x04Assist!");
+            }
+            else if (display_swag[pid] && displayed_swag == false) {
+                displayed_swag = true;
+                screen.printfAt(i, "\x09\x09\x09\x04Swag!");
+            }
+            else if (display_longshot[pid] && displayed_longshot == false) {
+                displayed_longshot = true;
+                screen.printfAt(i, "\x09\x09\x09\x04Longshot!");
+            }
+        }
+
+        if (recent_timer[pid] == 0) {
+            recent_score[pid] = 0;
+            display_amount[pid] = 0;
+            display_kill[pid] = 0;
+            display_execute[pid] = 0;
+            display_swag[pid] = 0;
+            display_longshot[pid] = 0;
+            display_assist[pid] = 0;
+        }
+    }
+}
+
+function tallyScore() {
+    for (var i = 0 ; i < 8 ; i++) {
+        session_score[i] += current_score[i];
+        current_score[i] = 0;
+        current_flagscore[i] = 0;
+    }
+    team0_score = 0;
+    team1_score = 0;
+    team2_score = 0;
+    team3_score = 0;
+}

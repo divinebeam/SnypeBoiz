@@ -1,0 +1,425 @@
+import mouse;
+import main;
+import coord;
+import sound;
+
+const lineT = [110, 126, 142, 158, 174, 190, 206, 222, 238, 254, 270];
+const lineB = [125, 141, 157, 173, 189, 205, 221, 237, 253, 269, 285];
+
+const screen = StringBuffer(256);
+const type = PVariable();
+const page = PVariable();
+const loadout_page = PVariable();
+const mouseX = PVariable();
+const mouseY = PVariable();
+var local_mouseX;
+var local_mouseY;
+
+const hover_play = 1;
+const hover_loadout = 2;
+const hover_options = 3;
+
+var game_mode = 0;
+var game_zone = 0;
+var ffa_score_max = 2500;
+var tdm_score_max = 2000;
+var ctf_score_max = 3;
+
+//STRINGS
+const button_play0 = Db("\x04[PLAY]");
+const button_play1 = Db("\x11[PLAY]");
+const button_play2 = Db("\x06[PLAY]");
+const button_loadout0 = Db("\x04[LOADOUT]");
+const button_loadout1 = Db("\x11[LOADOUT]");
+const button_loadout2 = Db("\x06[LOADOUT]");
+const button_options0 = Db("\x04[OPTIONS]");
+const button_options1 = Db("\x11[OPTIONS]");
+const button_options2 = Db("\x06[OPTIONS]");
+const tooltip0 = Db("\x02Use mouse to interact with text.");
+const tooltip1 = Db("\x02Left-click to view and modify match settings.");
+const tooltip2 = Db("\x02Left-click to view and edit loadout.");
+const tooltip3 = Db("\x02Left-click to view and tweak options.");
+const tooltip4 = Db("\x02Left-click arrows to change game mode.");
+const tooltip5 = Db("\x02Left-click arrows to change current play zone.");
+const tooltip6 = Db("\x02Left-click arrows to modify max score.");
+const button_left0 = Db("\x04««");
+const button_left1 = Db("\x06««");
+const button_right0 = Db("\x04»»");
+const button_right1 = Db("\x06»»");
+const text_ffa = Db("\x1FFree For All\x09\x09\x09");
+const text_tdm = Db("\x1FTeam Deathmatch\x09");
+const text_ctf = Db("\x1FCapture The Flag\x09");
+const text_badlands = Db("\x1FBadlands\x09\x09\x09");
+const text_warehouse = Db("\x1FWarehouse\x09\x09\x09");
+const text_caves = Db("\x1FCaves\x09\x09\x09\x09");
+const text_overpass = Db("\x1FOverpass\x09\x09\x09");
+const text_laboratory = Db("\x1FLaboratory\x09\x09\x09");
+const text_market = Db("\x1FMarket\x09\x09\x09\x09");
+const text_brescentbyne = Db("\x1FBrescent Byne\x09\x09");
+const text_doom2 = Db("\x1FDoom II\x09\x09\x09\x09");
+
+const MOUSE_X, MOUSE_Y = EPD(0x6CDDC4), EPD(0x6CDDC8);
+function checkForHover(line, left, right) {
+    var pid = getcurpl();
+    const top, bottom = lineT[line], lineB[line];
+    const x = local_mouseX;
+    const y = local_mouseY;
+    if (x >= left && x <= right && y >= top && y <= bottom) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function checkForHoverSynced(line, left, right) {
+    var pid = getcurpl();
+    const top, bottom = lineT[line], lineB[line];
+    const x = mouseX[pid];
+    const y = mouseY[pid];
+    if (x >= left && x <= right && y >= top && y <= bottom) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+var display_game_mode = Db(256);
+function updateGameModeText() {
+    if (game_mode == 0) display_game_mode = text_ffa;
+    if (game_mode == 1) display_game_mode = text_tdm;
+    if (game_mode == 2) display_game_mode = text_ctf;
+    sound.select0();
+}
+
+var display_game_zone = Db(256);
+function updateGameZoneText() {
+    if (game_zone == 0) display_game_zone = text_badlands;
+    if (game_zone == 1) display_game_zone = text_warehouse;
+    if (game_zone == 2) display_game_zone = text_caves;
+    if (game_zone == 3) display_game_zone = text_overpass;
+    if (game_zone == 4) display_game_zone = text_laboratory;
+    if (game_zone == 5) display_game_zone = text_market;
+    if (game_zone == 6) display_game_zone = text_brescentbyne;
+    if (game_zone == 7) display_game_zone = text_doom2;
+    sound.select0();
+}
+
+var tooltip;
+var set_tooltip_default = true;
+function updateToolTip(newtooltip) {
+    set_tooltip_default = false;
+    if (tooltip != newtooltip) {
+        tooltip = newtooltip;
+        sound.scroll();
+    }
+}
+
+function getMenuValues() {
+    return game_mode, game_zone, ffa_score_max, tdm_score_max, ctf_score_max;
+}
+
+function pingSelectedZone() {
+    if (game_zone == 0) {
+        setloc(main.l_main, coord.x_zone0_center, coord.y_zone0_center);
+        MinimapPing(main.l_main);
+    }
+    if (game_zone == 1) {
+        setloc(main.l_main, coord.x_zone1_center, coord.y_zone1_center);
+        MinimapPing(main.l_main);
+    }
+    if (game_zone == 2) {
+        setloc(main.l_main, coord.x_zone2_center, coord.y_zone2_center);
+        MinimapPing(main.l_main);
+    }
+    if (game_zone == 3) {
+        setloc(main.l_main, coord.x_zone3_center, coord.y_zone3_center);
+        MinimapPing(main.l_main);
+    }
+    if (game_zone == 4) {
+        setloc(main.l_main, coord.x_zone4_center, coord.y_zone4_center);
+        MinimapPing(main.l_main);
+    }
+    if (game_zone == 5) {
+        setloc(main.l_main, coord.x_zone5_center, coord.y_zone5_center);
+        MinimapPing(main.l_main);
+    }
+    if (game_zone == 6) {
+        setloc(main.l_main, coord.x_zone6_center, coord.y_zone6_center);
+        MinimapPing(main.l_main);
+    }
+    if (game_zone == 7) {
+        setloc(main.l_main, coord.x_zone7_center, coord.y_zone7_center);
+        MinimapPing(main.l_main);
+    }
+}
+
+function initialize() {
+    updateGameModeText();
+    updateGameZoneText();
+}
+
+const button_augment0 = Db("\x1BAugment");
+const button_augment1 = Db("\x11Augment");
+const button_augment2 = Db("\x06Augment");
+const button_perk0 = Db("\x1BPerk");
+const button_perk1 = Db("\x11Perk");
+const button_perk2 = Db("\x06Perk");
+const button_equipment0 = Db("\x1BEquipment");
+const button_equipment1 = Db("\x11Equipment");
+const button_equipment2 = Db("\x06Equipment");
+const button_smg0 = Db("\x04Submachine Gun");
+const button_smg1 = Db("\x03Submachine Gun");
+const button_smg2 = Db("\x06Submachine Gun");
+const button_lmg0 = Db("\x04Light Machine Gun");
+const button_lmg1 = Db("\x03Light Machine Gun");
+const button_lmg2 = Db("\x06Light Machine Gun");
+const button_shotgun0 = Db("\x04Double Barrel Shotgun");
+const button_shotgun1 = Db("\x03Double Barrel Shotgun");
+const button_shotgun2 = Db("\x06Double Barrel Shotgun");
+const button_sniper0 = Db("\x04Precision Rifle");
+const button_sniper1 = Db("\x03Precision Rifle");
+const button_sniper2 = Db("\x06Precision Rifle");
+const tooltip_augment = Db("\x02Left-click to change equipped Augment.");
+const tooltip_perk = Db("\x02Left-click to change currently active Perk.");
+const tooltip_equipment = Db("\x02Left-click to change Equipment.");
+const tooltip_smg = Db("\x02Fast rate of fire, low damage. Good for close encounters.");
+const tooltip_lmg = Db("\x02Slow rate of fire, medium damage. Good for more accurate play from a distance.");
+const tooltip_shotgun = Db("\x02Inaccurate and messy but very high damage up close.");
+const tooltip_sniper = Db("\x02Perfectly accurate weapon meant for cross map snypes.");
+
+function menuLoadout() {
+    var display_line0 = Db(512);
+    var display_line1 = Db(512);
+    var display_line2 = Db(512);
+    var display_line3 = Db(512);
+    var display_line4 = Db(512);
+    var display_line5 = Db(512);
+    var display_line6 = Db(512);
+    var display_line7 = Db(512);
+    const pid = getcurpl();
+    local_mouseX = maskread_epd(MOUSE_X, 4095);
+    local_mouseY = maskread_epd(MOUSE_Y, 4095);
+    const x, y = mouse.mX[pid], mouse.mY[pid];
+    if (mouse.mX[pid] != -1) mouseX[pid], mouseY[pid] = mouse.mX[pid], mouse.mY[pid];
+    const clickleft = mouse.mouse_left_down[pid];
+    const clickright = mouse.mouse_right_down[pid];
+
+    var button_augment = button_augment0;
+    var button_perk = button_perk0;
+    var button_equipment = button_equipment0;
+    var button_smg = button_smg0;
+    var button_lmg = button_lmg0;
+    var button_shotgun = button_shotgun0;
+    var button_sniper = button_sniper0;
+    if (checkForHover(1, 130, 210)) {button_augment = button_augment2; updateToolTip(tooltip_augment);}
+    else if (loadout_page[pid] == 0) {button_augment = button_augment1;}
+    if (checkForHover(1, 211, 270)) {button_perk = button_perk2; updateToolTip(tooltip_perk);}
+    else if (loadout_page[pid] == 1) {button_perk = button_perk1;}
+    if (checkForHover(1, 271, 340)) {button_equipment = button_equipment2; updateToolTip(tooltip_equipment);}
+    else if (loadout_page[pid] == 2) {button_equipment = button_equipment1;}
+
+    if (loadout_page[pid] == 0) {
+        if (checkForHoverSynced(3, 130, 225) && clickleft) {main.aug_type[pid] = 0; sound.select1(); DisplayText("\x09\x09\x09\x09\x09\x09\x04Equipped Submachine Gun.");}
+        if (checkForHoverSynced(3, 271, 380) && clickleft) {main.aug_type[pid] = 1; sound.select1(); DisplayText("\x09\x09\x09\x09\x09\x09\x04Equipped Light Machine Gun.");}
+        if (checkForHoverSynced(5, 130, 250) && clickleft) {main.aug_type[pid] = 2; sound.select1(); DisplayText("\x09\x09\x09\x09\x09\x09\x04Equipped Double Barrel Shotgun.");}
+        if (checkForHoverSynced(5, 270, 360) && clickleft) {main.aug_type[pid] = 3; sound.select1(); DisplayText("\x09\x09\x09\x09\x09\x09\x04Equipped Precision Rifle.");}
+
+        if (checkForHover(3, 130, 225)) {button_smg = button_smg2; updateToolTip(tooltip_smg);}
+        else if (main.aug_type[pid] == 0) {button_smg = button_smg1;}
+        if (checkForHover(3, 271, 380)) {button_lmg = button_lmg2; updateToolTip(tooltip_lmg);}
+        else if (main.aug_type[pid] == 1) {button_lmg = button_lmg1;}
+        if (checkForHover(5, 130, 250)) {button_shotgun = button_shotgun2; updateToolTip(tooltip_shotgun);}
+        else if (main.aug_type[pid] == 2) {button_shotgun = button_shotgun1;}
+        if (checkForHover(5, 270, 360)) {button_sniper = button_sniper2; updateToolTip(tooltip_sniper);}
+        else if (main.aug_type[pid] == 3) {button_sniper = button_sniper1;}
+    }
+
+    //line1 - change augment
+    sprintf(display_line1, "\x09\x09\x09\x09\x09\x09{:s}\x09\x09{:s}\x09\x09{:s}", button_augment, button_perk, button_equipment);
+    screen.printfAt(1, "{:s}", display_line1);
+    //line2
+    screen.printfAt(2, "\x09");
+    //line3
+    if (loadout_page[pid] == 0) sprintf(display_line3, "\x09\x09\x09\x09\x09\x09{:s}\x09\x09\x09{:s}", button_smg, button_lmg);
+    screen.printfAt(3, "{:s}", display_line3);
+    //line4
+    screen.printfAt(4, "\x09");
+    //line5
+    if (loadout_page[pid] == 0) sprintf(display_line5, "\x09\x09\x09\x09\x09\x09{:s}\x09\x09{:s}", button_shotgun, button_sniper);
+    screen.printfAt(5, "{:s}", display_line5);
+    //line6
+    screen.printfAt(6, "\x09");
+    
+    //if (x != -1 && y != -1) {
+    //    eprintf("{:c}{:n}'s \x04mouse: ({}, {})", pid, pid, x, y);
+    //}
+}
+
+function menuLobby() {
+    local_mouseX = maskread_epd(MOUSE_X, 4095);
+    local_mouseY = maskread_epd(MOUSE_Y, 4095);
+       
+    const pid = getcurpl();
+    var x, y = mouse.mX[pid], mouse.mY[pid];
+    if (mouse.mX[pid] != -1) mouseX[pid], mouseY[pid] = mouse.mX[pid], mouse.mY[pid];
+
+    const clickleft = mouse.mouse_left_down[pid];
+        
+    if (type[pid] == 1) {
+        var display_line0 = Db(512);
+        var display_line1 = Db(512);
+        var display_line2 = Db(512);
+        var display_line3 = Db(512);
+        var display_line4 = Db(512);
+        var display_line5 = Db(512);
+        var display_line6 = Db(512);
+        var display_line7 = Db(512);
+        var button_play, button_loadout, button_options = button_play0, button_loadout0, button_options0;
+        var button_modeleft, button_moderight = button_left0, button_right0;
+        var button_zoneleft, button_zoneright = button_left0, button_right0;
+        var button_scoreleft, button_scoreright = button_left0, button_right0;
+        var tooltip_override = 0;
+        if (set_tooltip_default) tooltip = tooltip0;
+
+        if (checkForHover(0, 130, 188)) {button_play = button_play2; updateToolTip(tooltip1);}
+        else if (page[pid] == 0) {button_play = button_play1;}
+        if (checkForHover(0, 189, 290)) {button_loadout = button_loadout2; updateToolTip(tooltip2);}
+        else if (page[pid] == 1) {button_loadout = button_loadout1;}
+        if (checkForHover(0, 291, 380)) {button_options = button_options2; updateToolTip(tooltip3);}
+        else if (page[pid] == 2) {button_options = button_options1;}
+
+        if (main.isHost() && page[pid] == 0) {
+            //select mode
+            if (checkForHoverSynced(2, 130, 222) && clickleft) {
+                if (game_mode == 0) {game_mode = 2;}
+                else if (game_mode > 0 && game_mode < 3) {game_mode--;}
+                updateGameModeText();
+            }
+            if (checkForHoverSynced(2, 223, 301) && clickleft) {
+                if (game_mode == 2) {game_mode = 0;}
+                else if (game_mode >= 0 && game_mode < 2) {game_mode++;}
+                updateGameModeText();
+            }
+            //select zone
+            if (checkForHoverSynced(3, 130, 222) && clickleft) {
+                if (game_zone == 0) {game_zone = 7;}
+                else if (game_zone > 0 && game_zone < 8) {game_zone--;}
+                updateGameZoneText();
+            }
+            if (checkForHoverSynced(3, 223, 301) && clickleft) {
+                if (game_zone == 7) {game_zone = 0;}
+                else if (game_zone >= 0 && game_zone < 7) {game_zone++;}
+                updateGameZoneText();
+            }
+            //select score ffa
+            if (game_mode == 0) {
+                if (checkForHoverSynced(4, 130, 222) && clickleft) {
+                    if (ffa_score_max == 1000) {ffa_score_max = 5000;}
+                    else if (ffa_score_max > 1000 && ffa_score_max < 5001) {ffa_score_max -= 500;}
+                    updateGameZoneText();
+                }
+                if (checkForHoverSynced(4, 223, 301) && clickleft) {
+                    if (ffa_score_max == 5000) {ffa_score_max = 1000;}
+                    else if (ffa_score_max >= 1000 && ffa_score_max < 5000) {ffa_score_max += 500;}
+                    updateGameZoneText();
+                }
+            }
+            //select score tdm
+            if (game_mode == 1) {
+                if (checkForHoverSynced(4, 130, 222) && clickleft) {
+                    if (tdm_score_max == 1000) {tdm_score_max = 5000;}
+                    else if (tdm_score_max > 1000 && tdm_score_max < 5001) {tdm_score_max -= 500;}
+                    updateGameZoneText();
+                }
+                if (checkForHoverSynced(4, 223, 301) && clickleft) {
+                    if (tdm_score_max == 5000) {tdm_score_max = 1000;}
+                    else if (tdm_score_max >= 1000 && tdm_score_max < 5000) {tdm_score_max += 500;}
+                    updateGameZoneText();
+                }
+            }
+            //select score ctf
+            if (game_mode == 2) {
+                if (checkForHoverSynced(4, 130, 222) && clickleft) {
+                    if (ctf_score_max == 1) {ctf_score_max = 10;}
+                    else if (ctf_score_max > 0 && ctf_score_max < 11) {ctf_score_max--;}
+                    updateGameZoneText();
+                }
+                if (checkForHoverSynced(4, 223, 301) && clickleft) {
+                    if (ctf_score_max == 10) {ctf_score_max = 1;}
+                    else if (ctf_score_max >= 1 && ctf_score_max < 10) {ctf_score_max++;}
+                    updateGameZoneText();
+                }
+            }
+
+            //start game
+            if (main.key_e[pid]) {
+                main.initializeMatch();
+            }
+
+            if (checkForHover(2, 130, 222)) {button_modeleft = button_left1; updateToolTip(tooltip4);}
+            else if (checkForHover(2, 223, 301)) {button_moderight = button_right1; updateToolTip(tooltip4);}
+            if (checkForHover(3, 130, 222)) {button_zoneleft = button_left1; updateToolTip(tooltip5);}
+            else if (checkForHover(3, 223, 301)) {button_zoneright = button_right1; updateToolTip(tooltip5);}
+            if (checkForHover(4, 130, 222)) {button_scoreleft = button_left1; updateToolTip(tooltip6);}
+            else if (checkForHover(4, 223, 301)) {button_scoreright = button_right1; updateToolTip(tooltip6);}
+
+        } else if (page[pid] == 0) {
+            if (checkForHover(2, 130, 301) || checkForHover(3, 130, 301) || checkForHover(4, 130, 301) ) {
+                tooltip_override = 1;
+            }
+        }
+
+        if (checkForHoverSynced(0, 130, 188) && clickleft) {page[pid] = 0; sound.select0();}
+        if (checkForHoverSynced(0, 189, 290) && clickleft) {page[pid] = 1; sound.select0();}
+        //if (checkForHoverSynced(0, 291, 380) && clickleft) {page[pid] = 2; sound.select0();}
+
+        //line 0
+        sprintf(display_line0, "\x09\x09\x09\x09\x09\x09{:s}\x09\x09\x09{:s}\x09\x09\x09{:s}", button_play, button_loadout, button_options);
+        screen.printfAt(0, "{:s}", display_line0);
+        if (page[pid] == 0) {
+            //line 1
+            screen.printfAt(1, "\x0BLine 1");
+            //line 2
+            sprintf(display_line2, "\x09\x09\x09\x09\x09\x09{:s}\x09\x04Mode:\x09{:s}{:s}", button_modeleft, display_game_mode, button_moderight);
+            screen.printfAt(2, "{:s}", display_line2);
+            //line 3
+            sprintf(display_line3, "\x09\x09\x09\x09\x09\x09{:s}\x09\x04Zone:\x09{:s}{:s}", button_zoneleft, display_game_zone, button_zoneright);
+            screen.printfAt(3, "{:s}", display_line3);
+            //line 4
+            if (game_mode == 0) {
+                sprintf(display_line4, "\x09\x09\x09\x09\x09\x09{:s}\x09\x04Score:\x09\x1F{}\x09\x09\x09\x09{:s}", button_scoreleft, ffa_score_max, button_scoreright);
+            } else if (game_mode == 1) {
+                sprintf(display_line4, "\x09\x09\x09\x09\x09\x09{:s}\x09\x04Score:\x09\x1F{}\x09\x09\x09\x09{:s}", button_scoreleft, tdm_score_max, button_scoreright);
+            } else if (game_mode == 2) {
+                sprintf(display_line4, "\x09\x09\x09\x09\x09\x09{:s}\x09\x04Score:\x09\x1F{}\x09\x09\x09\x09\x09{:s}", button_scoreleft, ctf_score_max, button_scoreright);
+            }
+            screen.printfAt(4, "{:s}", display_line4);
+            //line 5
+            screen.printfAt(5, "\x0BLine 5");
+            //line 6
+            if (main.isHost()) {
+                screen.printfAt(6, "\x09\x09\x09\x09\x09\x09\x04Press \x1F[E] \x04to start the match.");
+            } else {
+                screen.printfAt(6, "\x0BLine 6");
+            }
+        }
+        if (page[pid] == 1) menuLoadout();
+        //line 7 tooltip
+        if (tooltip_override == 1) {
+            const p = main.host;
+            sprintf(display_line7, "\x09\x09\x09\x09\x09\x09{:c}{:n} \x02is the host, wait for them to make a selection.", p, p);
+        } else {
+            sprintf(display_line7, "\x09\x09\x09\x09\x09\x09{:s}", tooltip);
+        }
+        screen.printfAt(7, "{:s}", display_line7);
+        
+        pingSelectedZone();
+    }
+
+    if (type[pid] == 0) {
+        main.clearTextLines(0, 7);
+    }
+    //if (x != -1 && y != -1) {
+    //    eprintf("{:c}{:n}'s \x04mouse: ({}, {})", p, p, x, y);
+    //}
+}

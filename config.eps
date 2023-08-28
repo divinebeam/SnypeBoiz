@@ -1,0 +1,96 @@
+const accuracy_loss_factor = 3;
+const accuracy_max = 200;
+const speedmodifythreshold = 10;
+const sprintthreshold = 40; //trigger cycles until hero starts sprinting
+const base_move_speed = 2; //movement speed applied no matter what as long as speedmodifythreshold is fulfilled
+const sprint_speed = 4;
+const dash_recharge = 96; //time until dash can be used again
+const dash_time = 16; //time that dash is in effect
+const dash_speed = 13; //speed applied during dash time
+const dodge_recharge = 120; //time until dodge can be used again
+const base_damage = 65;
+const min_damage = 25;
+const max_damage = 100;
+const dmg_distance_factor = 4; //damage loss per half tile
+const evasion_max = 60;
+const regen_time = 144; //time until regen starts
+const regen_factor = 2; //hitpoints gained per trigger cycle
+const explode0_dmg = 180; //damage the barrel explosion starts at from the center
+const explode0_distance_factor = 16; //distance in pixels of each damage loss
+const explode0_dmgperdistanceloss = 18; //damage lost per factor
+const gamestart_countdown = 240; //showdown time at the start of each round
+const respawntime = 96;
+const execdistance = 40;
+const execution_dmg = 200;
+const longshotdistance = 200;
+const victory_display_time = 168;
+const multikill_time = 96;
+const door_time = 48;
+
+const uav_time = 480;
+
+const pdw_ammo = 60;
+const pdw_cool = 2;
+const pdw_step = 32;
+const pdw_spread = 12;
+const pdw_damage = 25;
+const pdw_mdamage = 8;
+const pdw_range = 640;
+
+const lmg_ammo = 40;
+const lmg_cool = 5;
+const lmg_step = 32;
+const lmg_spread = 4;
+const lmg_damage = 30;
+const lmg_mdamage = 20;
+const lmg_range = 640;
+
+const dbl_ammo = 10;
+const dbl_reload = 48;
+const dbl_clip = 2;
+const dbl_cool = 1;
+const dbl_step = 32;
+const dbl_spread = 20;
+const dbl_damage = 35;
+const dbl_mdamage = 2;
+const dbl_range = 320;
+
+const prc_ammo = 6;
+const prc_reload = 84;
+const prc_clip = 1;
+const prc_cool = 72;
+const prc_step = 32;
+const prc_spread = 0;
+const prc_damage = 200;
+const prc_range = 1920;
+
+const strikep_step = 48;
+const strikep_spread = 4;
+const strikep_damage = 45;
+const strikep_range = 640;
+
+const strike_range = 1280;
+const strike_barrageoffset = 128;
+
+const frag_step = 8;
+const frag_damage = 150;
+const frag_mdamage = 15;
+const frag_loss = 30;
+const frag_range = 320;
+const frag_velocity = 2;
+const frag_time = 60;
+
+const flash_duration = 72;
+
+const mine_trigger_distance = 60;
+
+const c4_range = 160;
+
+const z0_flagcaptime = 120;
+const z1_flagcaptime = 72;
+const z2_flagcaptime = 120;
+const z3_flagcaptime = 120;
+const z4_flagcaptime = 72;
+const z5_flagcaptime = 120;
+const z6_flagcaptime = 72;
+const z7_flagcaptime = 96;

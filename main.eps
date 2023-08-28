@@ -1,0 +1,3322 @@
+import ETK.ETKCommon as Common;
+import ETK.ETKConstants as Const;
+import ETK.ETKTimer as Timer;
+import ETK.ETKUnit as Unit;
+import ETK.ETKUtils as Utils;
+import mouse;
+import menu;
+import coord;
+import sound;
+import respawn;
+import effects;
+import score;
+import config as cfg;
+import projectile as prj;
+import trig;
+
+//UNITS
+const anyunit = Const.Unit_AnyUnit;
+const u_hero = Const.Unit_TerranGhost;
+const u_kaka = Const.Unit_Kakaru_TwilightCritter;
+const u_ling = Const.Unit_ZergZergling;
+const u_ember_beacon = Const.Unit_TerranBeacon;
+const u_shade_beacon = Const.Unit_ZergBeacon;
+const u_angel_beacon = Const.Unit_ProtossBeacon;
+const u_venom_beacon = Const.Unit_TerranFlagBeacon;
+const u_barrel = Const.Unit_TerranVespeneGasTankType1;
+const u_car = Const.Unit_TerranVulture;
+const u_truck = Const.Unit_TerranSiegeTank_TankMode;
+const u_mr = Const.Unit_MapRevealer;
+const u_ghostalt = Const.Unit_AlexeiStukov_Ghost;
+const u_tempvision = Const.Unit_ProtossShuttle;
+const u_pathable = Const.Unit_ProtossDarkTemplar_Unit;
+const u_bullettrail = Const.Unit_TerranWraith;
+const u_vision = Const.Unit_MapRevealer;
+const u_checkheight = Const.Unit_ZergScourge;
+const u_flag = Const.Unit_ZergDevourer;
+const u_angel = Const.Unit_Hyperion_Battlecruiser;
+const u_circle = Const.Unit_ZergOverlord;
+const u_smoke = 22;
+const u_proximitymine = 74;
+const u_c4 = 218;
+
+//LOCATIONS
+const anywhere = $L("Anywhere");
+const l_buffer = $L("@buffer0");
+const l_main = $L("main");
+const l_0x0 = $L("0x0");
+const l_1x1 = $L("1x1");
+const l_3x3 = $L("3x3");
+const l_8x8 = $L("8x8");
+const l_10x10 = $L("10x10");
+const l_22x22 = $L("22x22");
+const l_p1strg = $L("strg1");
+const l_p2strg = $L("strg2");
+const l_p3strg = $L("strg3");
+const l_p4strg = $L("strg4");
+const l_p5strg = $L("strg5");
+const l_p6strg = $L("strg6");
+const l_p7strg = $L("strg7");
+const l_p8strg = $L("strg8");
+const l_ordercoord = $L("ordercoord");
+const l_select = $L("select");
+const l_m1 = $L("MouseLoc1");
+const l_m2 = $L("MouseLoc2");
+const l_m3 = $L("MouseLoc3");
+const l_m4 = $L("MouseLoc4");
+const l_m5 = $L("MouseLoc5");
+const l_m6 = $L("MouseLoc6");
+const l_m7 = $L("MouseLoc7");
+const l_m8 = $L("MouseLoc8");
+const l_pathable = $L("pathable");
+const l_height0 = $L("height0");
+const l_height1 = $L("height1");
+const l_height2 = $L("height2");
+
+const screen = StringBuffer(256);
+
+//VARIABLE
+const hero_arr = EUDArray(8);
+const flag_arr = EUDArray(2);
+const smoke_arr = EUDArray(16);
+const mine_arr = EUDArray(16);
+const c4_arr = EUDArray(16);
+
+var game_mode;
+var game_zone;
+var ffa_score_max, tdm_score_max, ctf_score_max;
+
+var host = 1000;
+const player_state = EUDArray(8);
+var game_state = 0;
+var fow_state = 0;
+var countdown_timer = 0;
+var victory_timer = 0;
+const victory = EUDArray(8);
+var team_victory = 0;
+const winners = EUDArray(8);
+var order_stop = false; //3
+var order_move = false; //6
+var order_attack = false; //14 or 10
+const order_hold = EUDArray(8); //107
+var order_patrol = false; //152
+var setting_accuracy = true;
+var setting_friendlyfire = false;
+var setting_friendlyvision = true;
+var setting_autoattack = false;
+var setting_homeflag = true;
+const hero_hitpoints = EUDArray(8);
+const hero_momentum = EUDArray(8);
+const hero_accuracy = EUDArray(8);
+const hero_dash = EUDArray(8);
+const hero_dodge = EUDArray(8);
+const hero_state = EUDArray(8);
+const ailment_flash = EUDArray(8);
+const ailment_flash_timer = EUDArray(8);
+const afterdeathtimer = EUDArray(8);
+const hero_regen_state = EUDArray(8);
+const spawn_timer = EUDArray(8);
+const team = EUDArray(8);
+const sound_gun = EUDArray(8);
+const sound_explosion = EUDArray(8);
+const sound_physics = EUDArray(8);
+const sound_interact = EUDArray(8);
+const sound_broadcast = EUDArray(8);
+const sound_killstreak = EUDArray(8);
+const sound_wiz = EUDArray(8);
+const broadcast = EUDArray(8);
+const explode0_state = EUDArray(8);
+const effect_splat = EUDArray(8);
+const hero_posX = EUDArray(8);
+const hero_posY = EUDArray(8);
+const hero_orderX = EUDArray(8);
+const hero_orderY = EUDArray(8);
+const death_pointX = EUDArray(8);
+const death_pointY = EUDArray(8);
+const hero_direction = EUDArray(8);
+const can_attack = EUDArray(8);
+const dmg_to_p1 = EUDArray(8);
+const dmg_to_p2 = EUDArray(8);
+const dmg_to_p3 = EUDArray(8);
+const dmg_to_p4 = EUDArray(8);
+const dmg_to_p5 = EUDArray(8);
+const dmg_to_p6 = EUDArray(8);
+const dmg_to_p7 = EUDArray(8);
+const dmg_to_p8 = EUDArray(8);
+const dmg_to_p1buffer = EUDArray(8);
+const dmg_to_p2buffer = EUDArray(8);
+const dmg_to_p3buffer = EUDArray(8);
+const dmg_to_p4buffer = EUDArray(8);
+const dmg_to_p5buffer = EUDArray(8);
+const dmg_to_p6buffer = EUDArray(8);
+const dmg_to_p7buffer = EUDArray(8);
+const dmg_to_p8buffer = EUDArray(8);
+const dmg_to_p1_flag = EUDArray(8);
+const dmg_to_p2_flag = EUDArray(8);
+const dmg_to_p3_flag = EUDArray(8);
+const dmg_to_p4_flag = EUDArray(8);
+const dmg_to_p5_flag = EUDArray(8);
+const dmg_to_p6_flag = EUDArray(8);
+const dmg_to_p7_flag = EUDArray(8);
+const dmg_to_p8_flag = EUDArray(8);
+const assistdmg_to_p1 = EUDArray(8);
+const assistdmg_to_p2 = EUDArray(8);
+const assistdmg_to_p3 = EUDArray(8);
+const assistdmg_to_p4 = EUDArray(8);
+const assistdmg_to_p5 = EUDArray(8);
+const assistdmg_to_p6 = EUDArray(8);
+const assistdmg_to_p7 = EUDArray(8);
+const assistdmg_to_p8 = EUDArray(8);
+const alliance_p1 = EUDArray(8);
+const alliance_p2 = EUDArray(8);
+const alliance_p3 = EUDArray(8);
+const alliance_p4 = EUDArray(8);
+const alliance_p5 = EUDArray(8);
+const alliance_p6 = EUDArray(8);
+const alliance_p7 = EUDArray(8);
+const alliance_p8 = EUDArray(8);
+const was_killed = EUDArray(8);
+const last_killed_by = EUDArray(8);
+const killed_with = EUDArray(8);
+const current_kills = EUDArray(8);
+const current_deaths = EUDArray(8);
+const current_assists = EUDArray(8);
+const killstreak = EUDArray(8);
+const streakA_thislife = EUDArray(8);
+const streakB_thislife = EUDArray(8);
+const streakC_thislife = EUDArray(8);
+const have_augment = EUDArray(8);
+const have_strike = EUDArray(8);
+const aug_disabled = EUDArray(8);
+const aug_type = EUDArray(8);
+const aug_state = EUDArray(8);
+const aug_cooldown = EUDArray(8);
+const aug_ammo = EUDArray(8);
+const aug_loaded = EUDArray(8);
+const selected_augment = EUDArray(8);
+const selected_equipment = EUDArray(8);
+const equipm_type = EUDArray(8);
+const equipm_state = EUDArray(8);
+const frags_held = EUDArray(8);
+const smokes_held = EUDArray(8);
+const flashes_held = EUDArray(8);
+const mines_held = EUDArray(8);
+const c4_held = EUDArray(8);
+const strike_state = EUDArray(8);
+const strike_startX = EUDArray(8);
+const strike_startY = EUDArray(8);
+const strike_endX = EUDArray(8);
+const strike_endY = EUDArray(8);
+const strike_fstartX = EUDArray(8);
+const strike_fstartY = EUDArray(8);
+const strike_fendX = EUDArray(8);
+const strike_fendY = EUDArray(8);
+const strike_brgX = EUDArray(8);
+const strike_brgY = EUDArray(8);
+const strike_angle = EUDArray(8);
+const uav_state = EUDArray(8);
+const uav_ping = EUDArray(8);
+const multikill = EUDArray(8);
+const multikill_timer = EUDArray(8);
+const flag_follow = EUDArray(2);
+const flag_update = EUDArray(2);
+const flag_effect = EUDArray(2);
+const flag_return = EUDArray(2);
+var flag_visual = 0;
+const capture_time = EUDArray(8);
+const tid = EUDArray(8);
+const key_c = EUDArray(8);
+const key_d = EUDArray(8);
+const key_z = EUDArray(8);
+const key_x = EUDArray(8);
+const key_x_rel = EUDArray(8);
+const key_e = EUDArray(8);
+const key_menu = EUDArray(8);
+const interact_time = EUDArray(8);
+const key_g = EUDArray(8);
+const key_g_rel = EUDArray(8);
+const key_g_delay = EUDArray(8);
+const input_g = EUDArray(8);
+const input_g_time = EUDArray(8);
+const input_e = EUDArray(8);
+const input_e_time = EUDArray(8);
+const atdoor = EUDArray(8);
+const menu_state = EUDArray(8);
+var mine_visual = 0;
+
+//COORDINATES
+const x_hero0spawn0 = 368; const y_hero0spawn0 = 160;
+const x_hero1spawn0 = 400; const y_hero1spawn0 = 160;
+const x_hero2spawn0 = 432; const y_hero2spawn0 = 160;
+const x_hero3spawn0 = 464; const y_hero3spawn0 = 160;
+const x_hero4spawn0 = 496; const y_hero4spawn0 = 160;
+const x_hero5spawn0 = 528; const y_hero5spawn0 = 160;
+const x_hero6spawn0 = 560; const y_hero6spawn0 = 160;
+const x_hero7spawn0 = 592; const y_hero7spawn0 = 160;
+
+function setUnitSight(unitid, value) {
+    bwrite(0x65FD00 + 13624 + unitid * 1, value);
+    //idk if this works for units other than protoss shuttle, i didn't test.
+}
+
+function restockEquipment() {
+    const pid = getcurpl();
+    if (equipm_type[pid] == 0) frags_held[pid] = 1;
+    if (equipm_type[pid] == 1) smokes_held[pid] = 1;
+    if (equipm_type[pid] == 2) flashes_held[pid] = 1;
+    if (equipm_type[pid] == 3) mines_held[pid] = 1;
+    if (equipm_type[pid] == 4) c4_held[pid] = 1;
+}
+
+function getVision(player) {
+    if (player == 0) RunAIScript("+Vi0");
+    if (player == 1) RunAIScript("+Vi1");
+    if (player == 2) RunAIScript("+Vi2");
+    if (player == 3) RunAIScript("+Vi3");
+    if (player == 4) RunAIScript("+Vi4");
+    if (player == 5) RunAIScript("+Vi5");
+    if (player == 6) RunAIScript("+Vi6");
+    if (player == 7) RunAIScript("+Vi7");
+}
+
+function loseVision(player) {
+    if (player == 0) RunAIScript("-Vi0");
+    if (player == 1) RunAIScript("-Vi1");
+    if (player == 2) RunAIScript("-Vi2");
+    if (player == 3) RunAIScript("-Vi3");
+    if (player == 4) RunAIScript("-Vi4");
+    if (player == 5) RunAIScript("-Vi5");
+    if (player == 6) RunAIScript("-Vi6");
+    if (player == 7) RunAIScript("-Vi7");
+}
+
+function clearTextLines(a, b) {
+    var i;
+    
+    for (i = a ; i <= b ; i++) {
+        DisplayTextAt(i, "\x0Bclear");
+    }
+}
+
+function setupPermanentVision() {
+    setloc(l_main, 272, 256);
+    CreateUnit(1, "permanent_vision", l_main, CurrentPlayer);
+    setloc(l_main, 688, 256);
+    CreateUnit(1, "permanent_vision", l_main, CurrentPlayer);
+}
+
+function setupBeacons() {
+    setloc(l_main, 272, 160);
+    CreateUnit(1, u_ember_beacon, l_main, CurrentPlayer);
+    GiveUnits(All, u_ember_beacon, CurrentPlayer, anywhere, P12);
+    setloc(l_main, 688, 160);
+    CreateUnit(1, u_shade_beacon, l_main, CurrentPlayer);
+    GiveUnits(All, u_shade_beacon, CurrentPlayer, anywhere, P12);
+    setloc(l_main, 272, 352);
+    CreateUnit(1, u_angel_beacon, l_main, CurrentPlayer);
+    GiveUnits(All, u_angel_beacon, CurrentPlayer, anywhere, P12);
+    setloc(l_main, 688, 352);
+    CreateUnit(1, u_venom_beacon, l_main, CurrentPlayer);
+    GiveUnits(All, u_venom_beacon, CurrentPlayer, anywhere, P12);
+}
+
+function forceUpdateFOW() {
+    if (fow_state == 0) {
+        fow_state = 1;
+        SetMemory(0x0051CE98, SetTo, 0);
+    } else if (fow_state == 1) {
+        fow_state = 0;
+        SetMemory(0x0051CE98, SetTo, 1);
+    }
+}
+
+function posAtRect(x, y, left, right, top, bottom) {
+    if (x >= left && x <= right && y >= top && y <= bottom) return true;
+	return false;
+}
+
+function spawnUnitAtPos(unit, player, x, y) {
+    setloc(l_main, x, y);
+    const epd = epdread_epd(EPD(0x628438));
+    CreateUnit(1, unit, l_main, player);
+    return epd;
+}
+
+function heroAt(player, location) {
+    if (Bring(player, AtLeast, 1, u_hero, location)) return true;
+    return false;
+}
+
+function heroAtRect(player, left, right, top, bottom) {
+    var x, y = hero_posX[player], hero_posY[player];
+    if (x >= left && x <= right && y >= top && y <= bottom) return true;
+	return false;
+}
+
+function heroNotAt(player, location) {
+    if (Bring(player, Exactly, 0, u_hero, location)) return true;
+    return false;
+}
+
+function teleportHero(player, location) {
+    MoveUnit(1, u_hero, player, anywhere, location);
+}
+
+function teleportHeroPoint(player, x, y) {
+    setloc(l_main, x, y);
+    MoveUnit(1, u_hero, player, anywhere, l_main);
+    CenterView(l_main);
+}
+
+function heroAcquireLocation(location) {
+    MoveLocation(location, u_hero, CurrentPlayer, anywhere);
+}
+
+function locAcquireLoc(location, otherlocation) {
+    MoveLocation(otherlocation, u_mr, P12, location);
+}
+
+function stopAttack(pid) {
+    SetAllianceStatus(0, Ally);
+    SetAllianceStatus(1, Ally);
+    SetAllianceStatus(2, Ally);
+    SetAllianceStatus(3, Ally);
+    SetAllianceStatus(4, Ally);
+    SetAllianceStatus(5, Ally);
+    SetAllianceStatus(6, Ally);
+    SetAllianceStatus(7, Ally);
+}
+
+function isHost() {
+    const pid = getcurpl();
+    if (pid == host) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function getMousePos(playerid) {
+    if (playerid == 0) {
+        const x, y = Utils.getLocationPoint(l_m1);
+        return x, y;
+    }
+    if (playerid == 1) {
+        const x, y = Utils.getLocationPoint(l_m2);
+        return x, y;
+    }
+    if (playerid == 2) {
+        const x, y = Utils.getLocationPoint(l_m3);
+        return x, y;
+    }
+    if (playerid == 3) {
+        const x, y = Utils.getLocationPoint(l_m4);
+        return x, y;
+    }
+    if (playerid == 4) {
+        const x, y = Utils.getLocationPoint(l_m5);
+        return x, y;
+    }
+    if (playerid == 5) {
+        const x, y = Utils.getLocationPoint(l_m6);
+        return x, y;
+    }
+    if (playerid == 6) {
+        const x, y = Utils.getLocationPoint(l_m7);
+        return x, y;
+    }
+    if (playerid == 7) {
+        const x, y = Utils.getLocationPoint(l_m8);
+        return x, y;
+    }
+}
+
+function getMouseLeft() {
+    const pid = getcurpl();
+    return mouse.mouse_left_down[pid];
+}
+
+function updateAllianceStatus() {
+    var pid = getcurpl();
+    if (game_mode == 0) {
+        alliance_p1[pid] = 0;
+        alliance_p2[pid] = 0;
+        alliance_p3[pid] = 0;
+        alliance_p4[pid] = 0;
+        alliance_p5[pid] = 0;
+        alliance_p6[pid] = 0;
+        alliance_p7[pid] = 0;
+        alliance_p8[pid] = 0;
+    } else {
+        if (team[pid] == team[0]) {alliance_p1[pid] = 1;}
+        else {alliance_p1[pid] = 0;}
+        if (team[pid] == team[1]) {alliance_p2[pid] = 1;}
+        else {alliance_p2[pid] = 0;}
+        if (team[pid] == team[2]) {alliance_p3[pid] = 1;}
+        else {alliance_p3[pid] = 0;}
+        if (team[pid] == team[3]) {alliance_p4[pid] = 1;}
+        else {alliance_p4[pid] = 0;}
+        if (team[pid] == team[4]) {alliance_p5[pid] = 1;}
+        else {alliance_p5[pid] = 0;}
+        if (team[pid] == team[5]) {alliance_p6[pid] = 1;}
+        else {alliance_p6[pid] = 0;}
+        if (team[pid] == team[6]) {alliance_p7[pid] = 1;}
+        else {alliance_p7[pid] = 0;}
+        if (team[pid] == team[7]) {alliance_p8[pid] = 1;}
+        else {alliance_p8[pid] = 0;}
+    }
+}
+
+function clearOrderHold() {
+    var pid = getcurpl();
+    setloc(l_main, hero_posX[pid], hero_posY[pid]);
+    Order(u_hero, pid, anywhere, Move, l_main);
+    teleportHero(pid, l_main);
+}
+
+function clearAssistSelf(pid) { //clears assist damage YOU have done
+    assistdmg_to_p1[pid] = 0;
+    assistdmg_to_p2[pid] = 0;
+    assistdmg_to_p3[pid] = 0;
+    assistdmg_to_p4[pid] = 0;
+    assistdmg_to_p5[pid] = 0;
+    assistdmg_to_p6[pid] = 0;
+    assistdmg_to_p7[pid] = 0;
+    assistdmg_to_p8[pid] = 0;
+}
+
+function clearAssistOthers(pid) { //clears assist damage others have done to YOU
+    if (pid == 0) {for (var i = 0 ; i < 8 ; i++) {assistdmg_to_p1[i] = 0;}}
+    if (pid == 1) {for (var i = 0 ; i < 8 ; i++) {assistdmg_to_p2[i] = 0;}}
+    if (pid == 2) {for (var i = 0 ; i < 8 ; i++) {assistdmg_to_p3[i] = 0;}}
+    if (pid == 3) {for (var i = 0 ; i < 8 ; i++) {assistdmg_to_p4[i] = 0;}}
+    if (pid == 4) {for (var i = 0 ; i < 8 ; i++) {assistdmg_to_p5[i] = 0;}}
+    if (pid == 5) {for (var i = 0 ; i < 8 ; i++) {assistdmg_to_p6[i] = 0;}}
+    if (pid == 6) {for (var i = 0 ; i < 8 ; i++) {assistdmg_to_p7[i] = 0;}}
+    if (pid == 7) {for (var i = 0 ; i < 8 ; i++) {assistdmg_to_p8[i] = 0;}}
+}
+
+function clearButtons(pointer) {
+    Unit.clearBuildQueue(pointer);
+    /*dwwrite_epd(pointer + 0x98/4, 228 * 65537);
+    dwwrite_epd(pointer + 0x9C/4, 228 * 65537);
+    wwrite_epd(pointer + 0xA0/4, 0, 228);
+    bwrite_epd(pointer + 0xA6/4, 2, 2);
+    wwrite(pointer + 0x098, 228);
+    wwrite(pointer + 0x09A, 228);
+    wwrite(pointer + 0x09C, 228);
+    wwrite(pointer + 0x09E, 228);
+    wwrite(pointer + 0x0A0, 228);
+    bwrite(pointer + 0x0A6, 2);*/
+}
+
+function refreshButtons(pid) {
+    CreateUnit(1, u_kaka, l_buffer, pid);
+    RemoveUnit(u_kaka, pid);
+}
+
+function enableDashButton(playerID) {
+    SetMemoryEPD(EPD(0x584DE4) + $U("Terran Marine")*12 + playerID, SetTo, 1);
+    refreshButtons(playerID);
+}
+
+function disableDashButton(playerID) {
+    SetMemoryEPD(EPD(0x584DE4) + $U("Terran Marine")*12 + playerID, SetTo, 0);
+    refreshButtons(playerID);
+}
+
+function enableDodgeButton(playerID) {
+    SetMemoryEPD(EPD(0x584DE4) + $U("Terran SCV")*12 + playerID, SetTo, 1);
+    refreshButtons(playerID);
+}
+
+function disableDodgeButton(playerID) {
+    SetMemoryEPD(EPD(0x584DE4) + $U("Terran SCV")*12 + playerID, SetTo, 0);
+    refreshButtons(playerID);
+}
+
+function enableAugmentButton(playerID) {
+    SetMemoryEPD(EPD(0x584DE4) + $U("Terran Science Vessel")*12 + playerID, SetTo, 1);
+    refreshButtons(playerID);
+}
+
+function disableAugmentButton(playerID) {
+    SetMemoryEPD(EPD(0x584DE4) + $U("Terran Science Vessel")*12 + playerID, SetTo, 0);
+    refreshButtons(playerID);
+}
+
+function enableStrikeButton(playerID) {
+    SetMemoryEPD(EPD(0x584DE4) + $U("Gui Montag (Firebat)")*12 + playerID, SetTo, 1);
+    refreshButtons(playerID);
+}
+
+function disableStrikeButton(playerID) {
+    SetMemoryEPD(EPD(0x584DE4) + $U("Gui Montag (Firebat)")*12 + playerID, SetTo, 0);
+    refreshButtons(playerID);
+}
+
+function initializePlayer() {
+    const pid = getcurpl();
+    hero_hitpoints[pid] = 100;
+    hero_dodge[pid] = 0;
+    hero_dash[pid] = 0;
+    hero_accuracy[pid] = 0;
+    ModifyUnitEnergy(All, u_hero, pid, anywhere, 100);
+    clearAssistSelf(pid);
+    enableDodgeButton(pid);
+    Unit.setIsCloaked(hero_arr[pid], 0);
+    enableDashButton(pid);
+    aug_state[pid] = 0;
+    aug_ammo[pid] = 0;
+    if (flag_follow[0] == pid+1) flag_follow[0] = 0;
+    if (flag_follow[1] == pid+1) flag_follow[1] = 0;
+    aug_type[pid] = selected_augment[pid];
+    equipm_type[pid] = selected_equipment[pid];
+    restockEquipment();
+}
+
+function putPlayerBack() {
+    var pid = getcurpl();
+    if (pid == 0) teleportHero(pid, l_p1strg);
+    if (pid == 1) teleportHero(pid, l_p2strg);
+    if (pid == 2) teleportHero(pid, l_p3strg);
+    if (pid == 3) teleportHero(pid, l_p4strg);
+    if (pid == 4) teleportHero(pid, l_p5strg);
+    if (pid == 5) teleportHero(pid, l_p6strg);
+    if (pid == 6) teleportHero(pid, l_p7strg);
+    if (pid == 7) teleportHero(pid, l_p8strg);
+}
+
+function disablePlayer() {
+    const pid = getcurpl();
+    heroAcquireLocation(l_main);
+    Order(u_hero, pid, anywhere, Move, l_main);
+    teleportHero(pid, l_main);
+    hero_accuracy[pid] = 0;
+    Unit.setGroundWeaponCooldown(hero_arr[pid], 0);
+    aug_disabled[pid] = true;
+}
+
+function disableMovement(pid) {
+    heroAcquireLocation(l_main);
+    teleportHero(pid, l_main);
+}
+
+function getTeamID(pid) {
+    for (var i = 0; i < 4; i++) {
+        if (team[pid] == i) {
+            var playercount = 0;
+            for (var p = 0; p < 8; p++) {
+                if (team[p] == i) playercount++;
+                if (pid == p) {
+                    const teamid = playercount - 1;
+                    return teamid;
+                }
+            }
+        }
+    }
+}
+
+function killedBy(i, checkvalue) {
+    const pid = getcurpl();
+    if (checkvalue == 0) {
+        if (hero_hitpoints[pid] <= 0 || hero_hitpoints[pid] > 100) {
+            return i + 1;
+        }
+    }
+    return 0;
+}
+
+function initialSpawn() {
+    var pid = getcurpl();
+    var x, y;
+    if (game_zone == 0) {
+        if (game_mode == 0 || game_mode == 1) {
+            foreach(i, xy : py_enumerate(coord.zone0_spawns_initial0)) {
+                if (pid == i) SetVariables(list(x, y), xy);
+            }
+        } else if (game_mode == 2) {
+            const tid = getTeamID(pid);
+            foreach(i, xy : py_enumerate(coord.zone0_spawns_initial1)) {
+                if (team[pid] == 0) {
+                    if (tid == i) SetVariables(list(x, y), xy);
+                } else if (team[pid] == 1) {
+                    if (tid+7 == i) SetVariables(list(x, y), xy);
+                }
+            }
+        }
+    } else if (game_zone == 1) {
+        if (game_mode == 0 || game_mode == 1) {
+            foreach(i, xy : py_enumerate(coord.zone1_spawns_initial0)) {
+                if (pid == i) SetVariables(list(x, y), xy);
+            }
+        } else if (game_mode == 2) {
+            const tid = getTeamID(pid);
+            foreach(i, xy : py_enumerate(coord.zone1_spawns_initial1)) {
+                if (team[pid] == 0) {
+                    if (tid == i) SetVariables(list(x, y), xy);
+                } else if (team[pid] == 1) {
+                    if (tid+7 == i) SetVariables(list(x, y), xy);
+                }
+            }
+        }
+    } else if (game_zone == 2) {
+        if (game_mode == 0 || game_mode == 1) {
+            foreach(i, xy : py_enumerate(coord.zone2_spawns_initial0)) {
+                if (pid == i) SetVariables(list(x, y), xy);
+            }
+        } else if (game_mode == 2) {
+            const tid = getTeamID(pid);
+            foreach(i, xy : py_enumerate(coord.zone2_spawns_initial1)) {
+                if (team[pid] == 0) {
+                    if (tid == i) SetVariables(list(x, y), xy);
+                } else if (team[pid] == 1) {
+                    if (tid+7 == i) SetVariables(list(x, y), xy);
+                }
+            }
+        }
+    } else if (game_zone == 3) {
+        if (game_mode == 0 || game_mode == 1) {
+            foreach(i, xy : py_enumerate(coord.zone3_spawns_initial0)) {
+                if (pid == i) SetVariables(list(x, y), xy);
+            }
+        } else if (game_mode == 2) {
+            const tid = getTeamID(pid);
+            foreach(i, xy : py_enumerate(coord.zone3_spawns_initial1)) {
+                if (team[pid] == 0) {
+                    if (tid == i) SetVariables(list(x, y), xy);
+                } else if (team[pid] == 1) {
+                    if (tid+7 == i) SetVariables(list(x, y), xy);
+                }
+            }
+        }
+    } else if (game_zone == 4) {
+        if (game_mode == 0 || game_mode == 1) {
+            foreach(i, xy : py_enumerate(coord.zone4_spawns_initial0)) {
+                if (pid == i) SetVariables(list(x, y), xy);
+            }
+        } else if (game_mode == 2) {
+            const tid = getTeamID(pid);
+            foreach(i, xy : py_enumerate(coord.zone4_spawns_initial1)) {
+                if (team[pid] == 0) {
+                    if (tid == i) SetVariables(list(x, y), xy);
+                } else if (team[pid] == 1) {
+                    if (tid+7 == i) SetVariables(list(x, y), xy);
+                }
+            }
+        }
+    } else if (game_zone == 5) {
+        if (game_mode == 0 || game_mode == 1) {
+            foreach(i, xy : py_enumerate(coord.zone5_spawns_initial0)) {
+                if (pid == i) SetVariables(list(x, y), xy);
+            }
+        } else if (game_mode == 2) {
+            const tid = getTeamID(pid);
+            foreach(i, xy : py_enumerate(coord.zone5_spawns_initial1)) {
+                if (team[pid] == 0) {
+                    if (tid == i) SetVariables(list(x, y), xy);
+                } else if (team[pid] == 1) {
+                    if (tid+7 == i) SetVariables(list(x, y), xy);
+                }
+            }
+        }
+    } else if (game_zone == 6) {
+        if (game_mode == 0 || game_mode == 1) {
+            foreach(i, xy : py_enumerate(coord.zone6_spawns_initial0)) {
+                if (pid == i) SetVariables(list(x, y), xy);
+            }
+        } else if (game_mode == 2) {
+            const tid = getTeamID(pid);
+            foreach(i, xy : py_enumerate(coord.zone6_spawns_initial1)) {
+                if (team[pid] == 0) {
+                    if (tid == i) SetVariables(list(x, y), xy);
+                } else if (team[pid] == 1) {
+                    if (tid+7 == i) SetVariables(list(x, y), xy);
+                }
+            }
+        }
+    } else if (game_zone == 7) {
+        if (game_mode == 0 || game_mode == 1) {
+            foreach(i, xy : py_enumerate(coord.zone7_spawns_initial0)) {
+                if (pid == i) SetVariables(list(x, y), xy);
+            }
+        } else if (game_mode == 2) {
+            const tid = getTeamID(pid);
+            foreach(i, xy : py_enumerate(coord.zone7_spawns_initial1)) {
+                if (team[pid] == 0) {
+                    if (tid == i) SetVariables(list(x, y), xy);
+                } else if (team[pid] == 1) {
+                    if (tid+7 == i) SetVariables(list(x, y), xy);
+                }
+            }
+        }
+    }
+    setloc(l_main, x, y);
+    teleportHeroPoint(pid, x, y);
+    Order(u_hero, pid, anywhere, Move, l_main);
+    teleportHero(pid, l_main);
+}
+
+function getFlagHomeCoords(id) {
+    if (id == 0) {
+        if (game_zone == 0) {
+            const x, y = coord.x_zone0_flag0, coord.y_zone0_flag0;
+            return x, y;
+        } else if (game_zone == 1) {
+            const x, y = coord.x_zone1_flag0, coord.y_zone1_flag0;
+            return x, y;
+        } else if (game_zone == 2) {
+            const x, y = coord.x_zone2_flag0, coord.y_zone2_flag0;
+            return x, y;
+        } else if (game_zone == 3) {
+            const x, y = coord.x_zone3_flag0, coord.y_zone3_flag0;
+            return x, y;
+        } else if (game_zone == 4) {
+            const x, y = coord.x_zone4_flag0, coord.y_zone4_flag0;
+            return x, y;
+        } else if (game_zone == 5) {
+            const x, y = coord.x_zone5_flag0, coord.y_zone5_flag0;
+            return x, y;
+        } else if (game_zone == 6) {
+            const x, y = coord.x_zone6_flag0, coord.y_zone6_flag0;
+            return x, y;
+        } else if (game_zone == 7) {
+            const x, y = coord.x_zone7_flag0, coord.y_zone7_flag0;
+            return x, y;
+        }
+    } else {
+        if (game_zone == 0) {
+            const x, y = coord.x_zone0_flag1, coord.y_zone0_flag1;
+            return x, y;
+        } else if (game_zone == 1) {
+            const x, y = coord.x_zone1_flag1, coord.y_zone1_flag1;
+            return x, y;
+        } else if (game_zone == 2) {
+            const x, y = coord.x_zone2_flag1, coord.y_zone2_flag1;
+            return x, y;
+        } else if (game_zone == 3) {
+            const x, y = coord.x_zone3_flag1, coord.y_zone3_flag1;
+            return x, y;
+        } else if (game_zone == 4) {
+            const x, y = coord.x_zone4_flag1, coord.y_zone4_flag1;
+            return x, y;
+        } else if (game_zone == 5) {
+            const x, y = coord.x_zone5_flag1, coord.y_zone5_flag1;
+            return x, y;
+        } else if (game_zone == 6) {
+            const x, y = coord.x_zone6_flag1, coord.y_zone6_flag1;
+            return x, y;
+        } else if (game_zone == 7) {
+            const x, y = coord.x_zone7_flag1, coord.y_zone7_flag1;
+            return x, y;
+        }
+    }
+    return 0, 0;
+}
+
+function returnFlag(id) {
+    const homeX, homeY = getFlagHomeCoords(id);
+    if (id == 0) {
+        setloc(l_main, homeX, homeY);
+        MoveUnit(1, u_flag, P11, anywhere, l_main);
+    } else {
+        setloc(l_main, homeX, homeY);
+        MoveUnit(1, u_flag, P12, anywhere, l_main);
+    }
+}
+
+function flagIsHome(id) {
+    const x = Unit.getPositionX(flag_arr[id]);
+    const y = Unit.getPositionY(flag_arr[id]);
+    const homeX, homeY = getFlagHomeCoords(id);
+    if (x == homeX && y == homeY) {
+        return true;
+    }
+    return false;
+}
+
+function removeUnitXY(amount, unit, player, x, y) {
+    setloc(l_main, x, y);
+    RemoveUnitAt(amount, unit, l_main, player);
+}
+
+function setupZone() {
+    RemoveUnit(u_barrel, P12);
+    RemoveUnit(u_car, P12);
+    RemoveUnit(u_truck, P12);
+    setloc(l_main, 1056, 64);
+    MoveUnit(1, u_flag, P11, anywhere, l_main);
+    setloc(l_main, 1120, 64);
+    MoveUnit(1, u_flag, P12, anywhere, l_main);
+
+    if (game_zone == 0) {
+        foreach(x, y : coord.zone0_barrels) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_barrel, l_main, host);
+        }
+        foreach(x, y : coord.zone0_trucks) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_truck, l_main, host);
+        }
+        foreach(x, y : coord.zone0_cars) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_car, l_main, host);
+        }
+    } else if (game_zone == 1) {
+        foreach(x, y : coord.zone1_barrels) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_barrel, l_main, host);
+        }
+        foreach(x, y : coord.zone1_trucks) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_truck, l_main, host);
+        }
+        foreach(x, y : coord.zone1_cars) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_car, l_main, host);
+        }
+    } else if (game_zone == 2) {
+        foreach(x, y : coord.zone2_barrels) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_barrel, l_main, host);
+        }
+    } else if (game_zone == 3) {
+        foreach(x, y : coord.zone3_barrels) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_barrel, l_main, host);
+        }
+        foreach(x, y : coord.zone3_trucks) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_truck, l_main, host);
+        }
+        foreach(x, y : coord.zone3_cars) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_car, l_main, host);
+        }
+    } else if (game_zone == 4) {
+        foreach(x, y : coord.zone4_barrels) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_barrel, l_main, host);
+        }
+    } else if (game_zone == 5) {
+        foreach(x, y : coord.zone5_barrels) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_barrel, l_main, host);
+        }
+        foreach(x, y : coord.zone5_trucks) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_truck, l_main, host);
+        }
+        foreach(x, y : coord.zone5_cars) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_car, l_main, host);
+        }
+    } else if (game_zone == 6) {
+        foreach(x, y : coord.zone6_barrels) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_barrel, l_main, host);
+        }
+    } else if (game_zone == 7) {
+        foreach(x, y : coord.zone7_barrels) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_barrel, l_main, host);
+        }
+        foreach(x, y : coord.zone7_trucks) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_truck, l_main, host);
+        }
+        foreach(x, y : coord.zone7_cars) {
+            setloc(l_main, x, y);
+            CreateUnit(1, u_car, l_main, host);
+        }
+    }
+    GiveUnits(All, u_barrel, host, anywhere, P12);
+    GiveUnits(All, u_truck, host, anywhere, P12);
+    GiveUnits(All, u_car, host, anywhere, P12);
+
+    if (game_mode == 2) {
+        returnFlag(0);
+        returnFlag(1);
+        //remove explodeable stuff around flag
+        if (game_zone == 0) {
+            removeUnitXY(1, u_truck, $P12, 834, 1752);
+            removeUnitXY(1, u_car, $P12, 941, 1857);
+            removeUnitXY(1, u_car, $P12, 677, 1839);
+            removeUnitXY(1, u_barrel, $P12, 864, 1696);
+            removeUnitXY(1, u_barrel, $P12, 2224, 1168);
+            removeUnitXY(1, u_car, $P12, 1937, 1277);
+            removeUnitXY(1, u_truck, $P12, 1846, 1255);
+        } else if (game_zone == 1) {
+
+        } else if (game_zone == 2) { 
+
+        } else if (game_zone == 3) { 
+            removeUnitXY(1, u_truck, $P12, 3648, 3184);
+            removeUnitXY(1, u_barrel, $P12, 3840, 3168);
+            removeUnitXY(1, u_car, $P12, 3920, 3328);
+            removeUnitXY(1, u_truck, $P12, 4960, 3856);
+            removeUnitXY(1, u_barrel, $P12, 5168, 3808);
+        } else if (game_zone == 4) { 
+            removeUnitXY(1, u_barrel, $P12, 3360, 1664);
+            removeUnitXY(1, u_barrel, $P12, 4128, 1664);
+        }
+    }
+}
+
+function initializeLeaderBoard() {
+    if (game_mode == 0) {
+        if (ffa_score_max == 1000) LeaderBoardScore(Custom, "\x04| \x1CFFA \x04| First to \x1F1000");
+        if (ffa_score_max == 1500) LeaderBoardScore(Custom, "\x04| \x1CFFA \x04| First to \x1F1500");
+        if (ffa_score_max == 2000) LeaderBoardScore(Custom, "\x04| \x1CFFA \x04| First to \x1F2000");
+        if (ffa_score_max == 2500) LeaderBoardScore(Custom, "\x04| \x1CFFA \x04| First to \x1F2500");
+        if (ffa_score_max == 3000) LeaderBoardScore(Custom, "\x04| \x1CFFA \x04| First to \x1F3000");
+        if (ffa_score_max == 3500) LeaderBoardScore(Custom, "\x04| \x1CFFA \x04| First to \x1F3500");
+        if (ffa_score_max == 4000) LeaderBoardScore(Custom, "\x04| \x1CFFA \x04| First to \x1F4000");
+        if (ffa_score_max == 4500) LeaderBoardScore(Custom, "\x04| \x1CFFA \x04| First to \x1F4500");
+        if (ffa_score_max == 5000) LeaderBoardScore(Custom, "\x04| \x1CFFA \x04| First to \x1F5000");
+    }
+    if (game_mode == 1) {
+        if (tdm_score_max == 1000) LeaderBoardScore(Custom, "\x04| \x1CTDM \x04| First to \x1F1000");
+        if (tdm_score_max == 1500) LeaderBoardScore(Custom, "\x04| \x1CTDM \x04| First to \x1F1500");
+        if (tdm_score_max == 2000) LeaderBoardScore(Custom, "\x04| \x1CTDM \x04| First to \x1F2000");
+        if (tdm_score_max == 2500) LeaderBoardScore(Custom, "\x04| \x1CTDM \x04| First to \x1F2500");
+        if (tdm_score_max == 3000) LeaderBoardScore(Custom, "\x04| \x1CTDM \x04| First to \x1F3000");
+        if (tdm_score_max == 3500) LeaderBoardScore(Custom, "\x04| \x1CTDM \x04| First to \x1F3500");
+        if (tdm_score_max == 4000) LeaderBoardScore(Custom, "\x04| \x1CTDM \x04| First to \x1F4000");
+        if (tdm_score_max == 4500) LeaderBoardScore(Custom, "\x04| \x1CTDM \x04| First to \x1F4500");
+        if (tdm_score_max == 5000) LeaderBoardScore(Custom, "\x04| \x1CTDM \x04| First to \x1F5000");
+    }
+    if (game_mode == 2) {
+        if (ctf_score_max == 1) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F1");
+        if (ctf_score_max == 2) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F2");
+        if (ctf_score_max == 3) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F3");
+        if (ctf_score_max == 4) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F4");
+        if (ctf_score_max == 5) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F5");
+        if (ctf_score_max == 6) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F6");
+        if (ctf_score_max == 7) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F7");
+        if (ctf_score_max == 8) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F8");
+        if (ctf_score_max == 9) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F9");
+        if (ctf_score_max == 10) LeaderBoardScore(Custom, "\x04| \x1CCTF \x04| First to \x1F10");
+    }
+}
+
+function validateTeams() {
+    var playercount = 0;
+    if (game_mode == 2) {
+        var team0count = 0;
+        var team1count = 0;
+        for (var i = 0; i < 8; i++) {
+            if (playerexist(i)) {
+                playercount++;
+                if (team[i] == 2) team[i] = 0;
+                else if (team[i] == 3) team[i] = 1;
+                if (team[i] == 0) team0count++;
+                else team1count++;
+            }
+        }
+
+        if (team0count == playercount || team1count == playercount) {
+            //split team in half
+        }
+    }
+}
+
+function setSpriteID(pointer, id) {
+    bwrite(Unit.getSprite(pointer) + 10, id);
+}
+
+function setPlayerColor() {
+    const pid = getcurpl();
+    if (game_mode == 1 || game_mode == 2) {
+        if (team[pid] == 0) setSpriteID(hero_arr[pid], 0);
+        else if (team[pid] == 1) setSpriteID(hero_arr[pid], 4);
+        else if (team[pid] == 2) setSpriteID(hero_arr[pid], 2);
+        else if (team[pid] == 3) setSpriteID(hero_arr[pid], 7);
+    } else {
+        setSpriteID(hero_arr[pid], pid);
+    }
+}
+
+function setVisibility(pointer, player) {
+    bwrite(Unit.getSprite(pointer) + 12, 1 << player);
+    //const value = bread(Unit.getSprite(pointer) + 12);
+    //eprintf("{}", value);
+}
+
+function resetPlayerColor() {
+    const pid = getcurpl();
+    setSpriteID(hero_arr[pid], pid);
+}
+
+function initializeMatch() {
+    /*
+    close the menu
+    initialize player values
+        health
+        cooldowns
+        killstreak
+        loadout
+    setup selected zone
+        clear previous props and units
+        spawn props
+        spawn objective units
+    spawn players
+    setup game start display
+    */
+    score.tallyScore();
+    game_state = 1;
+    countdown_timer = cfg.gamestart_countdown + 1;
+    setupZone();
+    initializeLeaderBoard();
+    validateTeams();
+    EUDPlayerLoop()();
+        const pid = getcurpl();
+        menu_state[pid] = 0;
+        clearTextLines(0, 7);
+        initializePlayer();
+        setPlayerColor();
+        initialSpawn();
+        score.updateLeaderBoard();
+    EUDEndPlayerLoop();
+}
+
+function resetGame() {
+    EUDPlayerLoop()();
+        const pid = getcurpl();
+        CenterView(l_select);
+        resetPlayerColor();
+        disableAugmentButton(pid);
+        disableStrikeButton(pid);
+        have_augment[pid] = 0;
+        killstreak[pid] = 0;
+        streakA_thislife[pid] = 0;
+        streakB_thislife[pid] = 0;
+        streakC_thislife[pid] = 0;
+    EUDEndPlayerLoop();
+    game_state = 0;
+    for (var i = 0 ; i < 8 ; i++) {
+        aug_state[i] = 0;
+        aug_ammo[i] = 0;
+        aug_loaded[i] = 0;
+        have_augment[i] = 0;
+    }
+    if(playerexist(0) == false) teleportHero(0, l_p1strg);
+    else {setloc(l_main, x_hero0spawn0, y_hero0spawn0); teleportHero(0, l_main);}
+    if(playerexist(1) == false) teleportHero(1, l_p2strg);
+    else {setloc(l_main, x_hero1spawn0, y_hero1spawn0); teleportHero(1, l_main);}
+    if(playerexist(2) == false) teleportHero(2, l_p3strg);
+    else {setloc(l_main, x_hero2spawn0, y_hero2spawn0); teleportHero(2, l_main);}
+    if(playerexist(3) == false) teleportHero(3, l_p4strg);
+    else {setloc(l_main, x_hero3spawn0, y_hero3spawn0); teleportHero(3, l_main);}
+    if(playerexist(4) == false) teleportHero(4, l_p5strg);
+    else {setloc(l_main, x_hero4spawn0, y_hero4spawn0); teleportHero(4, l_main);}
+    if(playerexist(5) == false) teleportHero(5, l_p6strg);
+    else {setloc(l_main, x_hero5spawn0, y_hero5spawn0); teleportHero(5, l_main);}
+    if(playerexist(6) == false) teleportHero(6, l_p7strg);
+    else {setloc(l_main, x_hero6spawn0, y_hero6spawn0); teleportHero(6, l_main);}
+    if(playerexist(7) == false) teleportHero(7, l_p8strg);
+    else {setloc(l_main, x_hero7spawn0, y_hero7spawn0); teleportHero(7, l_main);}
+}
+
+function random(min, max) {
+   return min + dwrand() / (4294967295 / (max - min + 1) + 1);
+}
+
+function setDamageFlag(flag) {
+    var flag_value = 0;
+    //0 rifle/generic
+    if (flag == 1) flag_value = 1; //longshot
+    else if (flag == 2) flag_value = 2; //execution
+    else if (flag == 3) flag_value = 4; //explosion
+    else if (flag == 4) flag_value = 8; //augment:pdw
+    else if (flag == 5) flag_value = 16; //augment:lmg
+    else if (flag == 6) flag_value = 32; //augment:dbl
+    else if (flag == 7) flag_value = 64; //augment:prc
+    else if (flag == 8) flag_value = 128; //strike
+    return flag_value;
+}
+const flag_longshot = 0;
+const flag_execution = 1;
+const flag_explosion = 2;
+const flag_pdw = 3;
+const flag_lmg = 4;
+const flag_dbl = 5;
+const flag_prc = 6;
+const flag_strike = 7;
+
+function checkDamageFlags(pid, i) {
+    const flag = [0,0,0,0,0,0,0,0];
+    if (pid == 0) {
+        if (dmg_to_p1_flag[i] >= 128) {flag[flag_strike] = 1; dmg_to_p1_flag[i] -= 128;}
+        if (dmg_to_p1_flag[i] >= 64) {flag[flag_prc] = 1; dmg_to_p1_flag[i] -= 64;}
+        if (dmg_to_p1_flag[i] >= 32) {flag[flag_dbl] = 1; dmg_to_p1_flag[i] -= 32;}
+        if (dmg_to_p1_flag[i] >= 16) {flag[flag_lmg] = 1; dmg_to_p1_flag[i] -= 16;}
+        if (dmg_to_p1_flag[i] >= 8) {flag[flag_pdw] = 1; dmg_to_p1_flag[i] -= 8;}
+        if (dmg_to_p1_flag[i] >= 4) {flag[flag_explosion] = 1; dmg_to_p1_flag[i] -= 4;}
+        if (dmg_to_p1_flag[i] >= 2) {flag[flag_execution] = 1; dmg_to_p1_flag[i] -= 2;}
+        if (dmg_to_p1_flag[i] >= 1) {flag[flag_longshot] = 1; dmg_to_p1_flag[i] -= 1;}
+    } else if (pid == 1) {
+        if (dmg_to_p2_flag[i] >= 128) {flag[flag_strike] = 1; dmg_to_p2_flag[i] -= 128;}
+        if (dmg_to_p2_flag[i] >= 64) {flag[flag_prc] = 1; dmg_to_p2_flag[i] -= 64;}
+        if (dmg_to_p2_flag[i] >= 32) {flag[flag_dbl] = 1; dmg_to_p2_flag[i] -= 32;}
+        if (dmg_to_p2_flag[i] >= 16) {flag[flag_lmg] = 1; dmg_to_p2_flag[i] -= 16;}
+        if (dmg_to_p2_flag[i] >= 8) {flag[flag_pdw] = 1; dmg_to_p2_flag[i] -= 8;}
+        if (dmg_to_p2_flag[i] >= 4) {flag[flag_explosion] = 1; dmg_to_p2_flag[i] -= 4;}
+        if (dmg_to_p2_flag[i] >= 2) {flag[flag_execution] = 1; dmg_to_p2_flag[i] -= 2;}
+        if (dmg_to_p2_flag[i] >= 1) {flag[flag_longshot] = 1; dmg_to_p2_flag[i] -= 1;}
+    } else if (pid == 2) {
+        if (dmg_to_p3_flag[i] >= 128) {flag[flag_strike] = 1; dmg_to_p3_flag[i] -= 128;}
+        if (dmg_to_p3_flag[i] >= 64) {flag[flag_prc] = 1; dmg_to_p3_flag[i] -= 64;}
+        if (dmg_to_p3_flag[i] >= 32) {flag[flag_dbl] = 1; dmg_to_p3_flag[i] -= 32;}
+        if (dmg_to_p3_flag[i] >= 16) {flag[flag_lmg] = 1; dmg_to_p3_flag[i] -= 16;}
+        if (dmg_to_p3_flag[i] >= 8) {flag[flag_pdw] = 1; dmg_to_p3_flag[i] -= 8;}
+        if (dmg_to_p3_flag[i] >= 4) {flag[flag_explosion] = 1; dmg_to_p3_flag[i] -= 4;}
+        if (dmg_to_p3_flag[i] >= 2) {flag[flag_execution] = 1; dmg_to_p3_flag[i] -= 2;}
+        if (dmg_to_p3_flag[i] >= 1) {flag[flag_longshot] = 1; dmg_to_p3_flag[i] -= 1;}
+    } else if (pid == 3) {
+        if (dmg_to_p4_flag[i] >= 128) {flag[flag_strike] = 1; dmg_to_p4_flag[i] -= 128;}
+        if (dmg_to_p4_flag[i] >= 64) {flag[flag_prc] = 1; dmg_to_p4_flag[i] -= 64;}
+        if (dmg_to_p4_flag[i] >= 32) {flag[flag_dbl] = 1; dmg_to_p4_flag[i] -= 32;}
+        if (dmg_to_p4_flag[i] >= 16) {flag[flag_lmg] = 1; dmg_to_p4_flag[i] -= 16;}
+        if (dmg_to_p4_flag[i] >= 8) {flag[flag_pdw] = 1; dmg_to_p4_flag[i] -= 8;}
+        if (dmg_to_p4_flag[i] >= 4) {flag[flag_explosion] = 1; dmg_to_p4_flag[i] -= 4;}
+        if (dmg_to_p4_flag[i] >= 2) {flag[flag_execution] = 1; dmg_to_p4_flag[i] -= 2;}
+        if (dmg_to_p4_flag[i] >= 1) {flag[flag_longshot] = 1; dmg_to_p4_flag[i] -= 1;}
+    } else if (pid == 4) {
+        if (dmg_to_p5_flag[i] >= 128) {flag[flag_strike] = 1; dmg_to_p5_flag[i] -= 128;}
+        if (dmg_to_p5_flag[i] >= 64) {flag[flag_prc] = 1; dmg_to_p5_flag[i] -= 64;}
+        if (dmg_to_p5_flag[i] >= 32) {flag[flag_dbl] = 1; dmg_to_p5_flag[i] -= 32;}
+        if (dmg_to_p5_flag[i] >= 16) {flag[flag_lmg] = 1; dmg_to_p5_flag[i] -= 16;}
+        if (dmg_to_p5_flag[i] >= 8) {flag[flag_pdw] = 1; dmg_to_p5_flag[i] -= 8;}
+        if (dmg_to_p5_flag[i] >= 4) {flag[flag_explosion] = 1; dmg_to_p5_flag[i] -= 4;}
+        if (dmg_to_p5_flag[i] >= 2) {flag[flag_execution] = 1; dmg_to_p5_flag[i] -= 2;}
+        if (dmg_to_p5_flag[i] >= 1) {flag[flag_longshot] = 1; dmg_to_p5_flag[i] -= 1;}
+    } else if (pid == 5) {
+        if (dmg_to_p6_flag[i] >= 128) {flag[flag_strike] = 1; dmg_to_p6_flag[i] -= 128;}
+        if (dmg_to_p6_flag[i] >= 64) {flag[flag_prc] = 1; dmg_to_p6_flag[i] -= 64;}
+        if (dmg_to_p6_flag[i] >= 32) {flag[flag_dbl] = 1; dmg_to_p6_flag[i] -= 32;}
+        if (dmg_to_p6_flag[i] >= 16) {flag[flag_lmg] = 1; dmg_to_p6_flag[i] -= 16;}
+        if (dmg_to_p6_flag[i] >= 8) {flag[flag_pdw] = 1; dmg_to_p6_flag[i] -= 8;}
+        if (dmg_to_p6_flag[i] >= 4) {flag[flag_explosion] = 1; dmg_to_p6_flag[i] -= 4;}
+        if (dmg_to_p6_flag[i] >= 2) {flag[flag_execution] = 1; dmg_to_p6_flag[i] -= 2;}
+        if (dmg_to_p6_flag[i] >= 1) {flag[flag_longshot] = 1; dmg_to_p6_flag[i] -= 1;}
+    } else if (pid == 6) {
+        if (dmg_to_p7_flag[i] >= 128) {flag[flag_strike] = 1; dmg_to_p7_flag[i] -= 128;}
+        if (dmg_to_p7_flag[i] >= 64) {flag[flag_prc] = 1; dmg_to_p7_flag[i] -= 64;}
+        if (dmg_to_p7_flag[i] >= 32) {flag[flag_dbl] = 1; dmg_to_p7_flag[i] -= 32;}
+        if (dmg_to_p7_flag[i] >= 16) {flag[flag_lmg] = 1; dmg_to_p7_flag[i] -= 16;}
+        if (dmg_to_p7_flag[i] >= 8) {flag[flag_pdw] = 1; dmg_to_p7_flag[i] -= 8;}
+        if (dmg_to_p7_flag[i] >= 4) {flag[flag_explosion] = 1; dmg_to_p7_flag[i] -= 4;}
+        if (dmg_to_p7_flag[i] >= 2) {flag[flag_execution] = 1; dmg_to_p7_flag[i] -= 2;}
+        if (dmg_to_p7_flag[i] >= 1) {flag[flag_longshot] = 1; dmg_to_p7_flag[i] -= 1;}
+    } else if (pid == 7) {
+        if (dmg_to_p8_flag[i] >= 128) {flag[flag_strike] = 1; dmg_to_p8_flag[i] -= 128;}
+        if (dmg_to_p8_flag[i] >= 64) {flag[flag_prc] = 1; dmg_to_p8_flag[i] -= 64;}
+        if (dmg_to_p8_flag[i] >= 32) {flag[flag_dbl] = 1; dmg_to_p8_flag[i] -= 32;}
+        if (dmg_to_p8_flag[i] >= 16) {flag[flag_lmg] = 1; dmg_to_p8_flag[i] -= 16;}
+        if (dmg_to_p8_flag[i] >= 8) {flag[flag_pdw] = 1; dmg_to_p8_flag[i] -= 8;}
+        if (dmg_to_p8_flag[i] >= 4) {flag[flag_explosion] = 1; dmg_to_p8_flag[i] -= 4;}
+        if (dmg_to_p8_flag[i] >= 2) {flag[flag_execution] = 1; dmg_to_p8_flag[i] -= 2;}
+        if (dmg_to_p8_flag[i] >= 1) {flag[flag_longshot] = 1; dmg_to_p8_flag[i] -= 1;}
+    }
+
+    /*
+    priority
+        explosion
+        strike
+        augment
+        execution
+        longshot
+        everything else
+    */
+
+    if (flag[flag_explosion]) return flag_explosion + 1;
+    else if (flag[flag_strike]) return flag_strike + 1;
+    else if (flag[flag_pdw]) return flag_pdw + 1;
+    else if (flag[flag_lmg]) return flag_lmg + 1;
+    else if (flag[flag_dbl]) return flag_dbl + 1;
+    else if (flag[flag_prc]) return flag_prc + 1;
+    else if (flag[flag_execution]) return flag_execution + 1;
+    else if (flag[flag_longshot]) return flag_longshot + 1;
+    return 0;
+}
+
+function getFlagCapTime() {
+    if (game_zone == 0) return cfg.z0_flagcaptime;
+    else if (game_zone == 1) return cfg.z1_flagcaptime;
+    else if (game_zone == 2) return cfg.z2_flagcaptime;
+    else if (game_zone == 3) return cfg.z3_flagcaptime;
+    else if (game_zone == 4) return cfg.z4_flagcaptime;
+    else if (game_zone == 5) return cfg.z5_flagcaptime;
+    else if (game_zone == 6) return cfg.z6_flagcaptime;
+    else if (game_zone == 7) return cfg.z7_flagcaptime;
+    return 120;
+}
+
+function getExactTime(value) {
+    var seconds = 0;
+    var milliseconds = 0;
+    var time = value;
+    var ms = 0;
+    while (time >= 24) {
+        time -= 24;
+        seconds++;
+    }
+    while (time > 0) {
+        time--;
+        milliseconds += 42;
+    }
+    while (milliseconds >= 100) {
+        milliseconds -= 100;
+        ms++;
+    }
+    return seconds, ms;
+}
+
+function displayInteraction(type, time) {
+    if (type == 0) {
+        const captime = getFlagCapTime();
+        const seconds, milliseconds = getExactTime(captime - time);
+        eprintf("Returning Flag {}.{}s", seconds, milliseconds);
+    } else if (type == 1) {
+        const seconds, milliseconds = getExactTime(cfg.door_time - time);
+        eprintf("Entering {}.{}s", seconds, milliseconds);
+    } else if (type == 2) {
+        const seconds, milliseconds = getExactTime(cfg.frag_time - time);
+        eprintf("\x06! \x04HOLDING GRENADE {}.{}s \x06!", seconds, milliseconds);
+    } 
+}
+
+function isAlly(p) {
+    const pid = getcurpl();
+    if (p == 0 && alliance_p1[pid] > 0) return true;
+    else if (p == 1 && alliance_p1[pid] > 0) return true;
+    else if (p == 2 && alliance_p2[pid] > 0) return true;
+    else if (p == 3 && alliance_p3[pid] > 0) return true;
+    else if (p == 4 && alliance_p4[pid] > 0) return true;
+    else if (p == 5 && alliance_p5[pid] > 0) return true;
+    else if (p == 6 && alliance_p6[pid] > 0) return true;
+    else if (p == 7 && alliance_p7[pid] > 0) return true;
+    return false;
+}
+
+function getZoneBounds() {
+    if (game_zone == 0) {
+        return coord.t_zone0, coord.b_zone0, coord.l_zone0, coord.r_zone0;
+    } else if (game_zone == 1) {
+        return coord.t_zone1, coord.b_zone1, coord.l_zone1, coord.r_zone1;
+    } else if (game_zone == 2) {
+        return coord.t_zone2, coord.b_zone2, coord.l_zone2, coord.r_zone2;
+    } else if (game_zone == 3) {
+        return coord.t_zone3, coord.b_zone3, coord.l_zone3, coord.r_zone3;
+    } else if (game_zone == 4) {
+        return coord.t_zone4, coord.b_zone4, coord.l_zone4, coord.r_zone4;
+    } else if (game_zone == 5) {
+        return coord.t_zone5, coord.b_zone5, coord.l_zone5, coord.r_zone5;
+    } else if (game_zone == 6) {
+        return coord.t_zone6, coord.b_zone6, coord.l_zone6, coord.r_zone6;
+    } else if (game_zone == 7) {
+        return coord.t_zone7, coord.b_zone7, coord.l_zone7, coord.r_zone7;
+    }
+}
+
+function createImageLocal(image, location) {
+    const pid = getcurpl();
+    SetMemoryX(0x00666458, SetTo, image, 0x0000ffff);
+    const epd = epdread_epd(EPD(0x628438));
+	CreateUnit(1, "Scanner Sweep", location, pid);
+    //setVisibility(epd, 2);
+	RemoveUnit("Scanner Sweep", pid);
+	SetMemoryX(0x00666458, SetTo, 546, 0x0000ffff);
+}
+
+function addDamageBuffer(from_player, damage_amount, to_player) {
+    const pid = from_player;
+    if (to_player == 0) dmg_to_p1buffer[pid] += damage_amount;
+    else if (to_player == 1) dmg_to_p2buffer[pid] += damage_amount;
+    else if (to_player == 2) dmg_to_p3buffer[pid] += damage_amount;
+    else if (to_player == 3) dmg_to_p4buffer[pid] += damage_amount;
+    else if (to_player == 4) dmg_to_p5buffer[pid] += damage_amount;
+    else if (to_player == 5) dmg_to_p6buffer[pid] += damage_amount;
+    else if (to_player == 6) dmg_to_p7buffer[pid] += damage_amount;
+    else if (to_player == 7) dmg_to_p8buffer[pid] += damage_amount;
+}
+
+function sendThrowSound(x, y) {
+    for (var i = 0; i < 8; i++) {
+        const distance = trig.getDistance(hero_posX[i], hero_posY[i], x, y);
+        if (distance < 8*32) sound_physics[i] = 2;
+    }
+}
+
+function sendC4ThrowSound(x, y) {
+    for (var i = 0; i < 8; i++) {
+        const distance = trig.getDistance(hero_posX[i], hero_posY[i], x, y);
+        if (distance < 8*32) sound_physics[i] = 3;
+    }
+}
+
+function isPositionWater(x, y) {
+    //zone 0 - BADLANDS - n/a
+
+    //zone 1 - WAREHOUSE - n/a
+
+    //zone 2 - CAVES
+    if (posAtRect(x, y, 576, 704, 3168, 3232)) return true;
+    if (posAtRect(x, y, 1088, 1344, 2720, 2784)) return true;
+    if (posAtRect(x, y, 1152, 1280, 2784, 2816)) return true;
+    if (posAtRect(x, y, 1114, 1140, 2943, 2954)) return true;
+    if (posAtRect(x, y, 1888, 1952, 2983, 3025)) return true;
+    if (posAtRect(x, y, 1696, 1728, 4131, 4144)) return true;
+    if (posAtRect(x, y, 960, 1088, 4097, 4161)) return true;
+    //zone 3 - OVERPASS
+    if (posAtRect(x, y, 4415, 4607, 3774, 3839)) return true;
+    if (posAtRect(x, y, 4512, 4704, 3840, 3872)) return true;
+    if (posAtRect(x, y, 4832, 4990, 3968, 4032)) return true;
+    if (posAtRect(x, y, 4897, 4961, 4032, 4064)) return true;
+    //zone 4 - LAB - n/a
+
+    //zone 5 - MARKET
+    if (posAtRect(x, y, 5824, 5984, 2752, 3136)) return true;
+    if (posAtRect(x, y, 5985, 6144, 2688, 3072)) return true;
+    if (posAtRect(x, y, 6145, 6336, 2687, 3040)) return true;
+    if (posAtRect(x, y, 6335, 6401, 2752, 3004)) return true;
+    if (posAtRect(x, y, 6400, 6464, 2784, 2863)) return true;
+    if (posAtRect(x, y, 6464, 6528, 2818, 2880)) return true;
+    if (posAtRect(x, y, 6400, 6464, 2912, 2976)) return true;
+    if (posAtRect(x, y, 6368, 6464, 3200, 3264)) return true;
+    if (posAtRect(x, y, 6431, 6624, 3168, 3200)) return true;
+    if (posAtRect(x, y, 6495, 6560, 3136, 3168)) return true;
+    if (posAtRect(x, y, 6592, 6688, 3200, 3232)) return true;
+    if (posAtRect(x, y, 6688, 6752, 3232, 3392)) return true;
+    if (posAtRect(x, y, 6752, 6816, 3232, 3424)) return true;
+    if (posAtRect(x, y, 6816, 7008, 3200, 3454)) return true;
+    if (posAtRect(x, y, 6880, 7008, 3168, 3200)) return true;
+    if (posAtRect(x, y, 7008, 7040, 3200, 3232)) return true;
+    if (posAtRect(x, y, 7008, 7040, 3424, 3456)) return true;
+    if (posAtRect(x, y, 7008, 7072, 3264, 3345)) return true;
+    if (posAtRect(x, y, 7072, 7296, 3232, 3360)) return true;
+    if (posAtRect(x, y, 7104, 7328, 3360, 3392)) return true;
+    if (posAtRect(x, y, 7296, 7328, 3232, 3296)) return true;
+    if (posAtRect(x, y, 7328, 7360, 3264, 3296)) return true;
+    if (posAtRect(x, y, 7296, 7392, 3392, 3424)) return true;
+    if (posAtRect(x, y, 7360, 7584, 3424, 3456)) return true;
+    if (posAtRect(x, y, 7456, 7520, 3392, 3424)) return true;
+    if (posAtRect(x, y, 7424, 7648, 3456, 3488)) return true;
+    if (posAtRect(x, y, 7488, 7552, 3488, 3584)) return true;
+    if (posAtRect(x, y, 7552, 7616, 3488, 3616)) return true;
+    if (posAtRect(x, y, 7616, 7680, 3488, 3584)) return true;
+    if (posAtRect(x, y, 7680, 7712, 3488, 3552)) return true;
+    if (posAtRect(x, y, 7712, 7744, 3520, 3552)) return true;
+    if (posAtRect(x, y, 7616, 7648, 3584, 3648)) return true;
+    if (posAtRect(x, y, 7648, 7680, 3616, 3648)) return true;
+    if (posAtRect(x, y, 7872, 8127, 3296, 3360)) return true;
+    if (posAtRect(x, y, 8128, 8191, 3169, 3328)) return true;
+    if (posAtRect(x, y, 8064, 8128, 3200, 3295)) return true;
+    if (posAtRect(x, y, 8000, 8064, 3232, 3296)) return true;
+    if (posAtRect(x, y, 7936, 8000, 3264, 3296)) return true;
+    if (posAtRect(x, y, 7967, 8031, 3392, 3456)) return true;
+    if (posAtRect(x, y, 7968, 8191, 3552, 3616)) return true;
+    if (posAtRect(x, y, 8000, 8191, 3776, 4480)) return true;
+    if (posAtRect(x, y, 7967, 8000, 3872, 4480)) return true;
+    if (posAtRect(x, y, 7902, 7966, 3904, 4480)) return true;
+    if (posAtRect(x, y, 7775, 7904, 3936, 4480)) return true;
+    if (posAtRect(x, y, 6495, 6623, 3840, 3873)) return true;
+    if (posAtRect(x, y, 6527, 6656, 3809, 3841)) return true;
+    if (posAtRect(x, y, 6496, 7136, 4320, 4480)) return true;
+    if (posAtRect(x, y, 6752, 6816, 4288, 4320)) return true;
+    if (posAtRect(x, y, 6688, 6752, 5255, 4320)) return true;
+    if (posAtRect(x, y, 6624, 6687, 4224, 4320)) return true;
+    if (posAtRect(x, y, 6592, 6623, 4224, 4288)) return true;
+    if (posAtRect(x, y, 6528, 6591, 4224, 4256)) return true;
+    if (posAtRect(x, y, 6496, 6528, 4224, 4320)) return true;
+    if (posAtRect(x, y, 6272, 6495, 4191, 4480)) return true;
+    if (posAtRect(x, y, 6079, 6271, 4191, 4223)) return true;
+    if (posAtRect(x, y, 6112, 6431, 4160, 4192)) return true;
+    if (posAtRect(x, y, 6175, 6368, 4127, 4159)) return true;
+    if (posAtRect(x, y, 6240, 6304, 4095, 4127)) return true;
+    if (posAtRect(x, y, 5824, 5887, 3680, 4320)) return true;
+    if (posAtRect(x, y, 5888, 5951, 3871, 4288)) return true;
+    if (posAtRect(x, y, 5951, 6079, 3904, 4095)) return true;
+    if (posAtRect(x, y, 6079, 6176, 3904, 4031)) return true;
+    if (posAtRect(x, y, 6175, 6207, 3935, 4017)) return true;
+    if (posAtRect(x, y, 6207, 6239, 3935, 4000)) return true;
+    if (posAtRect(x, y, 6240, 6272, 3968, 4000)) return true;
+    if (posAtRect(x, y, 5886, 5952, 3647, 3712)) return true;
+    if (posAtRect(x, y, 5952, 6016, 3680, 3712)) return true;
+    if (posAtRect(x, y, 5984, 6079, 3712, 3743)) return true;
+    if (posAtRect(x, y, 6048, 6303, 3743, 3776)) return true;
+    if (posAtRect(x, y, 6144, 6368, 3712, 3743)) return true;
+    if (posAtRect(x, y, 6207, 6336, 3680, 3711)) return true;
+    if (posAtRect(x, y, 6111, 6239, 3775, 3807)) return true;
+    if (posAtRect(x, y, 6143, 6176, 3808, 3826)) return true;
+    //zone 6 - BRESCENT BYNE
+    if (posAtRect(x, y, 0, 383, 4480, 4832)) return true;
+    if (posAtRect(x, y, 0, 288, 4832, 4928)) return true;
+    if (posAtRect(x, y, 287, 383, 4896, 4960)) return true;
+    if (posAtRect(x, y, 0, 223, 4928, 4960)) return true;
+    if (posAtRect(x, y, 0, 160, 4960, 4992)) return true;
+    if (posAtRect(x, y, 0, 103, 4992, 5022)) return true;
+    if (posAtRect(x, y, 0, 256, 5024, 5920)) return true;
+    if (posAtRect(x, y, 255, 319, 5120, 5180)) return true;
+    if (posAtRect(x, y, 255, 448, 5248, 5920)) return true;
+    if (posAtRect(x, y, 448, 640, 5408, 5920)) return true;
+    if (posAtRect(x, y, 640, 703, 5504, 5920)) return true;
+    if (posAtRect(x, y, 703, 768, 5536, 5920)) return true;
+    if (posAtRect(x, y, 767, 832, 5632, 5920)) return true;
+    if (posAtRect(x, y, 767, 832, 5536, 5599)) return true;
+    if (posAtRect(x, y, 832, 896, 5536, 5920)) return true;
+    if (posAtRect(x, y, 896, 1472, 5568, 5920)) return true;
+    if (posAtRect(x, y, 1024, 1152, 5536, 5570)) return true;
+    if (posAtRect(x, y, 0, 0, 0, 0)) return true;
+    if (posAtRect(x, y, 0, 0, 0, 0)) return true;
+    if (posAtRect(x, y, 0, 0, 0, 0)) return true;
+    //zone 7 - DOOM 2
+    if (posAtRect(x, y, 0, 0, 0, 0)) return true;
+    return false;
+}
+
+function createSmoke(x, y) {
+    for (var i = 0; i < 16; i++) {
+        if (Unit.getHitpoints(smoke_arr[i]) > 0) continue;
+        else {
+            smoke_arr[i] = spawnUnitAtPos(u_smoke, 0, x, y);
+            GiveUnits(All, u_smoke, 0, anywhere, P12);
+            return;
+        }
+    }
+}
+
+function createProximityMine(x, y) {
+    const pid = getcurpl();
+    for (var i = 0; i < 16; i++) {
+        if (mine_arr[i] > 0) continue;
+        else if (mine_arr[i] == 0) {
+            mine_arr[i] = spawnUnitAtPos(u_proximitymine, pid, x, y);
+            Unit.setHitpoints(mine_arr[i], 100);
+            return;
+        }
+    }
+}
+
+function createC4(x, y) {
+    const pid = getcurpl();
+    for (var i = 0; i < 16; i++) {
+        if (c4_arr[i] > 0) continue;
+        else if (c4_arr[i] == 0) {
+            c4_arr[i] = spawnUnitAtPos(u_c4, pid, x, y);
+            Unit.setHitpoints(c4_arr[i], 100);
+            return;
+        }
+    }
+}
+
+function sendProximityMineBeep(x, y) {
+    for (var i = 0; i < 8; i++) {
+        const distance = trig.getDistance(hero_posX[i], hero_posY[i], x, y);
+        if (distance < 8*32) sound_interact[i] = 2;
+    }
+}
+
+function triggerVictory() {
+    victory_timer = cfg.victory_display_time;
+    game_state = 2;
+    team_victory = 0;
+    if (game_mode == 0) {
+        for (var i = 0 ; i < 8 ; i++) {
+            if (score.current_score[i] >= ffa_score_max) victory[i] = 1;
+            else victory[i] = 0;
+        }
+    } else if (game_mode == 1) {
+        if (score.team0_score >= tdm_score_max) team_victory = 1;
+        else if (score.team1_score >= tdm_score_max) team_victory = 2;
+        else if (score.team2_score >= tdm_score_max) team_victory = 3;
+        else if (score.team3_score >= tdm_score_max) team_victory = 4;
+    } else if (game_mode == 2) {
+        if (score.team0_score >= ctf_score_max) team_victory = 1;
+        else if (score.team1_score >= ctf_score_max) team_victory = 2;
+        else if (score.team2_score >= ctf_score_max) team_victory = 3;
+        else if (score.team3_score >= ctf_score_max) team_victory = 4;
+    }
+    if (team_victory > 0) {
+        for (var i = 0 ; i < 8 ; i++) {
+            if (team[i] == team_victory - 1) victory[i] = 1;
+            else victory[i] = 0;
+        }
+    }
+
+    //set winners
+    for (var i = 0 ; i < 8 ; i++) winners[i] = 0;
+    for (var i = 0 ; i < 8 ; i++) {
+        if (victory[i]) {
+            for (var j = 0 ; j < 8 ; j++) {
+                if (winners[j] == 0) {
+                    winners[j] = i + 1;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+function onPluginStart() {
+    EUDRegisterObjectToNamespace("key_c", key_c);
+    EUDRegisterObjectToNamespace("key_d", key_d);
+    EUDRegisterObjectToNamespace("key_z", key_z);
+    EUDRegisterObjectToNamespace("key_x", key_x);
+    EUDRegisterObjectToNamespace("key_e", key_e);
+    EUDRegisterObjectToNamespace("key_menu", key_menu);
+    EUDRegisterObjectToNamespace("key_g", key_g);
+    randomize();
+    mouse.onPluginStart();
+    GetGlobalStringBuffer();
+    hero_arr[0] = spawnUnitAtPos(u_hero, 0, x_hero0spawn0, y_hero0spawn0);
+    hero_arr[1] = spawnUnitAtPos(u_hero, 1, x_hero1spawn0, y_hero1spawn0);
+    hero_arr[2] = spawnUnitAtPos(u_hero, 2, x_hero2spawn0, y_hero2spawn0);
+    hero_arr[3] = spawnUnitAtPos(u_hero, 3, x_hero3spawn0, y_hero3spawn0);
+    hero_arr[4] = spawnUnitAtPos(u_hero, 4, x_hero4spawn0, y_hero4spawn0);
+    hero_arr[5] = spawnUnitAtPos(u_hero, 5, x_hero5spawn0, y_hero5spawn0);
+    hero_arr[6] = spawnUnitAtPos(u_hero, 6, x_hero6spawn0, y_hero6spawn0);
+    hero_arr[7] = spawnUnitAtPos(u_hero, 7, x_hero7spawn0, y_hero7spawn0);
+    flag_arr[0] = spawnUnitAtPos(u_flag, 0, 1056, 64);
+    flag_arr[1] = spawnUnitAtPos(u_flag, 4, 1120, 64);
+    GiveUnits(1, u_flag, 0, anywhere, P11);
+    GiveUnits(1, u_flag, 4, anywhere, P12);
+    SetInvincibility(Enable, u_flag, P11, anywhere);
+    SetInvincibility(Enable, u_flag, P12, anywhere);
+    if(playerexist(0) == false) teleportHero(0, l_p1strg);
+    if(playerexist(1) == false) teleportHero(1, l_p2strg);
+    if(playerexist(2) == false) teleportHero(2, l_p3strg);
+    if(playerexist(3) == false) teleportHero(3, l_p4strg);
+    if(playerexist(4) == false) teleportHero(4, l_p5strg);
+    if(playerexist(5) == false) teleportHero(5, l_p6strg);
+    if(playerexist(6) == false) teleportHero(6, l_p7strg);
+    if(playerexist(7) == false) teleportHero(7, l_p8strg);
+    CreateUnitWithProperties(1, u_pathable, l_pathable, 0, UnitProperty(invincible = true));
+    CreateUnitWithProperties(1, u_checkheight, l_pathable, 0, UnitProperty(invincible = true));
+    GiveUnits(All, u_pathable, 0, anywhere, P12);
+    GiveUnits(All, u_checkheight, 0, anywhere, P12);
+    setupBeacons();
+    EUDPlayerLoop()();
+        const pid = getcurpl();
+        if (host == 1000) host = pid;
+        player_state[pid] = 1;
+        SetAllianceStatus(0, Ally);
+        SetAllianceStatus(1, Ally);
+        SetAllianceStatus(2, Ally);
+        SetAllianceStatus(3, Ally);
+        SetAllianceStatus(4, Ally);
+        SetAllianceStatus(5, Ally);
+        SetAllianceStatus(6, Ally);
+        SetAllianceStatus(7, Ally);
+        setupPermanentVision();
+        ModifyUnitEnergy(All, u_hero, CurrentPlayer, anywhere, 100);
+        enableDashButton(pid);
+        enableDodgeButton(pid);
+    EUDEndPlayerLoop();
+}
+
+function beforeTriggerExec() {
+    mouse.beforeTriggerExec();
+}
+
+function afterTriggerExec() {
+
+    forceUpdateFOW();
+
+    if (countdown_timer > 0) countdown_timer--;
+    
+    EUDPlayerLoop()();
+    
+        const pid = getcurpl();
+
+        sound_gun[pid] = 0;
+        sound_broadcast[pid] = 0;
+        sound_killstreak[pid] = 0;
+        if (broadcast[pid] > 0) {
+            sound_broadcast[pid] = broadcast[pid];
+            broadcast[pid] = 0;
+        }
+
+        //UNIT FREEZE FIX
+        const hero = hero_arr[pid];
+        if (MemoryEPD(hero + 0x38 / 4, Exactly, 0)
+        && MemoryEPD(hero + 0x3C / 4, Exactly, 0)
+        && MemoryEPD(hero + 0x40 / 4, Exactly, 0)
+        && MemoryXEPD(hero + 0x20 / 4, Exactly, 0x12, 0xFF)) {
+            SetMemoryXEPD(hero + 0x20 / 4, SetTo, 0, 0xFF);
+        }
+
+        //GET INPUT
+        if (key_e[pid] && input_e[pid] == 0) {
+            input_e[pid] = 1;
+        }
+        if (key_e[pid] == 0 && input_e[pid] > 0) {
+            input_e_time[pid]++;
+        }
+        if (input_e_time[pid] > 3) {
+            input_e[pid] = 0;
+            input_e_time[pid] = 0;
+        }
+
+        //equipment key
+        if (key_g_delay[pid] > 0) key_g_delay[pid]--;
+        if (key_g_rel[pid] == 1) {
+            key_g_rel[pid] = 0;
+            key_g_delay[pid] = 24;
+        }
+        else if (key_g[pid] == 0 && key_g_rel[pid] == 2) key_g_rel[pid] = 1;
+        else if (key_g[pid] && key_g_rel[pid] == 0) key_g_rel[pid] = 2;
+
+        const leftclick = getMouseLeft();
+        var input;
+        input = Unit.getOrderID(hero_arr[pid]);
+        if (input == 3) order_stop = true;
+        else order_stop = false;
+
+        if (input == 6) order_move = true;
+        else order_move = false;
+
+        if (input == 14 || input == 10) order_attack = true;
+        else order_attack = false;
+
+        if (input == 107) order_hold[pid] = 1;
+        else order_hold[pid] = 0;
+
+        if (input == 152) order_patrol = true;
+        else order_patrol = false;
+
+        //GET DIRECTION
+        /*
+        240 -> 15 = north
+        16 -> 47 = north east
+        48 -> 79 = east
+        80 -> 111 = south east
+        112 -> 143 = south
+        144 -> 175 = south west
+        176 -> 207 = west
+        208 -> 239 = north west
+        */
+        hero_direction[pid] = trig.convertDirectionSC_simple(Unit.getCurrentDirection2(hero_arr[pid]));
+
+        //visualize direction
+        const visualize_direction = 0;
+        if (visualize_direction) {
+            var facing_direction = trig.convertDirectionSimple_deg(hero_direction[pid]);
+            var distance = 32;
+            for (var d = 0; d < 6; d++){
+                const x, y = trig.ray(hero_posX[pid], hero_posY[pid], facing_direction, distance);
+                setloc(l_main, x, y);
+                Utils.createImageSpriteAtLocation(233, l_main);
+                distance += 8;
+            }
+        }
+
+        //GET HERO POSITION
+        hero_posX[pid] = Unit.getPositionX(hero_arr[pid]);
+        hero_posY[pid] = Unit.getPositionY(hero_arr[pid]);
+
+        //GET ORDER COORDINATES
+        hero_orderX[pid] = Unit.getOrderTargetX(hero_arr[pid]);
+        hero_orderY[pid] = Unit.getOrderTargetY(hero_arr[pid]);
+        setloc(l_ordercoord, hero_orderX[pid], hero_orderY[pid]);
+
+        //GAME START
+        if (countdown_timer > 0) {
+            heroAcquireLocation(l_main);
+            CenterView(l_main);
+            disablePlayer();
+            if (countdown_timer == cfg.gamestart_countdown) {
+                clearTextLines(0, 7);
+                if (game_mode == 0) {
+                    DisplayTextAt(2, "\x13\x04━━FREE FOR ALL━━");
+                    screen.printfAt(3, "\x13\x02First to \x1F{} \x02points wins the game!", ffa_score_max);
+                } else if (game_mode == 1) {
+                    DisplayTextAt(2, "\x13\x04━━TEAM DEATH MATCH━━");
+                    screen.printfAt(3, "\x13\x02First to \x1F{} \x02points wins the game!", tdm_score_max);
+                } else if (game_mode == 2) {
+                    DisplayTextAt(2, "\x13\x04━━CAPTURE THE FLAG━━");
+                    screen.printfAt(3, "\x13\x02First to \x1F{} \x02points wins the game!", ctf_score_max);
+                }
+                sound.bolt();
+            }
+            if (countdown_timer == 120 + 1) {
+                eprintf("\x04Match starts in 5 seconds!");
+                sound.click();
+            } else if (countdown_timer == 96 + 1) {
+                eprintf("\x04Match starts in 4 seconds!");
+                sound.click();
+            } else if (countdown_timer == 72 + 1) {
+                eprintf("\x04Match starts in 3 seconds!");
+                sound.click();
+            } else if (countdown_timer == 48 + 1) {
+                eprintf("\x04Match starts in 2 seconds!");
+                sound.click();
+            } else if (countdown_timer == 24 + 1) {
+                eprintf("\x04Match starts in 1 second!");
+                sound.click();
+            } else if (countdown_timer == 1) {
+                eprintf("\x04Match starts in 0 seconds!");
+                sound.bolt();
+            }
+        }
+        
+        //DASH
+        var dash_disable;
+        if (dash_disable == false && hero_dash[pid] == 0 && key_d[pid]) {
+            hero_dash[pid] = 1;
+            heroAcquireLocation(l_0x0);
+            CreateUnit(1, u_kaka, l_0x0, CurrentPlayer);
+            KillUnit(u_kaka, CurrentPlayer);
+            disableDashButton(pid);
+        }
+        if (hero_dash[pid] > 0) {
+            hero_dash[pid]++;
+            if (hero_dash[pid] >= cfg.dash_recharge) {
+                hero_dash[pid] = 0;
+                enableDashButton(pid);
+            }
+        }
+
+        //DODGE
+        var dodge_disable;
+        if (dodge_disable == false && hero_dodge[pid] == 0 && key_c[pid]) {
+            hero_dodge[pid] = cfg.dodge_recharge + 1;
+            DisplayText("\x12\x07DODGED!");
+            sound.dodge();
+            disableDodgeButton(pid);
+        }
+        if (hero_dodge[pid] > cfg.dodge_recharge - 12) {
+            Unit.setSecondaryOrderID(hero_arr[pid], 109);
+        } else if (Unit.getIsCloaked(hero_arr[pid]) > 0) {
+            Unit.setSecondaryOrderID(hero_arr[pid], 110);
+        }
+        if (hero_dodge[pid] > 0) {
+            hero_dodge[pid]--;
+            if (hero_dodge[pid] == 1) {
+                hero_dodge[pid] = 0;
+                DisplayText("\x12\x04DODGE READY!");
+                sound.dodge_ready();
+                enableDodgeButton(pid);
+            }
+        }
+
+        //MOVEMENT
+        var movement_disabled = 0;
+        if (flag_follow[0] == pid+1 || flag_follow[1] == pid+1) movement_disabled = 1;
+        if (movement_disabled == 0) {
+            const is_moving = Unit.getCurrentSpeed2(hero_arr[pid]);
+            if (is_moving > 2) {
+                hero_momentum[pid]++;
+            } else hero_momentum[pid] = 0;
+            if (hero_dash[pid] >= 1 && hero_dash[pid] <= cfg.dash_time && hero_momentum[pid] < cfg.speedmodifythreshold) hero_momentum[pid] = cfg.speedmodifythreshold;
+            if (hero_momentum[pid] >= cfg.speedmodifythreshold) {
+                var setspeedto = cfg.base_move_speed;
+                if (hero_momentum[pid] >= cfg.sprintthreshold) setspeedto += cfg.sprint_speed;
+                if (hero_dash[pid] >= 1 && hero_dash[pid] <= cfg.dash_time) setspeedto += cfg.dash_speed;
+                Unit.setCurrentSpeed2(hero_arr[pid], is_moving + (setspeedto * 256));
+            }
+        }
+
+        //ACCURACY
+        if (setting_accuracy) {
+            if (order_stop && hero_accuracy[pid] <= cfg.accuracy_max - 1) {
+                hero_accuracy[pid]++;
+            }
+            else if (hero_momentum[pid] >= 1 && hero_accuracy[pid] >= 1) {
+                if(hero_accuracy[pid] >= cfg.accuracy_loss_factor) hero_accuracy[pid] = hero_accuracy[pid] - cfg.accuracy_loss_factor;
+                else hero_accuracy[pid] = 0;
+            }
+
+        }
+
+        //PREVIOUS DAMAGE RETURNING
+        var sound_hitmarker = 0;
+        dmg_to_p1_flag[pid] = 0;
+        dmg_to_p2_flag[pid] = 0;
+        dmg_to_p3_flag[pid] = 0;
+        dmg_to_p4_flag[pid] = 0;
+        dmg_to_p5_flag[pid] = 0;
+        dmg_to_p6_flag[pid] = 0;
+        dmg_to_p7_flag[pid] = 0;
+        dmg_to_p8_flag[pid] = 0;
+        if (dmg_to_p1[pid] > 1) {
+            screen.printf("\x12\x11HIT {}", dmg_to_p1[pid]);
+            sound_hitmarker = 1;
+            dmg_to_p1[pid] = 0;
+            dmg_to_p1_flag[pid] = 0;
+        }
+        if (dmg_to_p2[pid] > 1) {
+            screen.printf("\x12\x11HIT {}", dmg_to_p2[pid]);
+            sound_hitmarker = 1;
+            dmg_to_p2[pid] = 0;
+            dmg_to_p2_flag[pid] = 0;
+        }
+        if (dmg_to_p3[pid] > 1) {
+            screen.printf("\x12\x11HIT {}", dmg_to_p3[pid]);
+            sound_hitmarker = 1;
+            dmg_to_p3[pid] = 0;
+            dmg_to_p3_flag[pid] = 0;
+        }
+        if (dmg_to_p4[pid] > 1) {
+            screen.printf("\x12\x11HIT {}", dmg_to_p4[pid]);
+            sound_hitmarker = 1;
+            dmg_to_p4[pid] = 0;
+            dmg_to_p4_flag[pid] = 0;
+        }
+        if (dmg_to_p5[pid] > 1) {
+            screen.printf("\x12\x11HIT {}", dmg_to_p5[pid]);
+            sound_hitmarker = 1;
+            dmg_to_p5[pid] = 0;
+            dmg_to_p5_flag[pid] = 0;
+        }
+        if (dmg_to_p6[pid] > 1) {
+            screen.printf("\x12\x11HIT {}", dmg_to_p6[pid]);
+            sound_hitmarker = 1;
+            dmg_to_p6[pid] = 0;
+            dmg_to_p6_flag[pid] = 0;
+        }
+        if (dmg_to_p7[pid] > 1) {
+            screen.printf("\x12\x11HIT {}", dmg_to_p7[pid]);
+            sound_hitmarker = 1;
+            dmg_to_p7[pid] = 0;
+            dmg_to_p7_flag[pid] = 0;
+        }
+        if (dmg_to_p8[pid] > 1) {
+            screen.printf("\x12\x11HIT {}", dmg_to_p8[pid]);
+            sound_hitmarker = 1;
+            dmg_to_p8[pid] = 0;
+            dmg_to_p8_flag[pid] = 0;
+        }
+
+        //RIFLE ATTACK
+        /*
+        player attacks another player
+        damage is calculated damage = base damage + (accuracy / 4)
+        then for every tile of distance between the player and the target 10 damage is lost
+        */
+
+        //damage buffer
+        if (dmg_to_p1buffer[pid] > 0) {dmg_to_p1[pid] += dmg_to_p1buffer[pid]; dmg_to_p1buffer[pid] = 0;}
+        if (dmg_to_p2buffer[pid] > 0) {dmg_to_p2[pid] += dmg_to_p2buffer[pid]; dmg_to_p2buffer[pid] = 0;}
+        if (dmg_to_p3buffer[pid] > 0) {dmg_to_p3[pid] += dmg_to_p3buffer[pid]; dmg_to_p3buffer[pid] = 0;}
+        if (dmg_to_p4buffer[pid] > 0) {dmg_to_p4[pid] += dmg_to_p4buffer[pid]; dmg_to_p4buffer[pid] = 0;}
+        if (dmg_to_p5buffer[pid] > 0) {dmg_to_p5[pid] += dmg_to_p5buffer[pid]; dmg_to_p5buffer[pid] = 0;}
+        if (dmg_to_p6buffer[pid] > 0) {dmg_to_p6[pid] += dmg_to_p6buffer[pid]; dmg_to_p6buffer[pid] = 0;}
+        if (dmg_to_p7buffer[pid] > 0) {dmg_to_p7[pid] += dmg_to_p7buffer[pid]; dmg_to_p7buffer[pid] = 0;}
+        if (dmg_to_p8buffer[pid] > 0) {dmg_to_p8[pid] += dmg_to_p8buffer[pid]; dmg_to_p8buffer[pid] = 0;}
+        
+        const attack_cooldown = Unit.getGroundWeaponCooldown(hero_arr[pid]);
+        var just_fired_rifle = false;
+        var execution = false;
+        var longshot = false;
+
+        if (can_attack[pid] && attack_cooldown == 20) {
+            just_fired_rifle = true;
+            sound_gun[pid] = 1;
+            
+            //calculate damage
+            var damage = 0;
+            if (hero_accuracy[pid] >= 4) {
+                damage = cfg.base_damage + (hero_accuracy[pid] / 4);
+            } else {
+                damage = cfg.base_damage + hero_accuracy[pid];
+            }
+
+            //distance to target
+            var targetX = 0;
+            var targetY = 0;
+            const target = Unit.getTargetUnit(hero_arr[pid]);
+            for (var i = 0; i < 8; i++) {
+                if (target == hero_arr[i]) {
+                    targetX, targetY = hero_posX[i], hero_posY[i];
+                    break;
+                }
+            }
+            const attack_distance = trig.getDistance(hero_posX[pid], hero_posY[pid], targetX, targetY);
+
+            //execution
+            if (attack_distance <= cfg.execdistance && game_state == 1) {
+                for (var i = 0; i < 8; i++) {
+                    if (target == hero_arr[i] && hero_direction[pid] == hero_direction[i] && pid != i && isAlly(i) == false) {
+                        execution = true;
+                        damage += cfg.execution_dmg;
+                    }
+                }
+            }
+
+            //longshot
+            if (attack_distance >= cfg.longshotdistance) longshot = true;
+            
+            //damage drop off
+            var damage_drop = 0;
+            if (attack_distance > 16) damage_drop = attack_distance / 16;
+            while (damage_drop > 0) {
+                damage_drop--;
+                if (damage >= cfg.dmg_distance_factor) damage -= cfg.dmg_distance_factor;
+                else break;
+            }
+            if (damage < cfg.min_damage) damage = cfg.min_damage;
+            else if (damage > cfg.max_damage && damage < 200) damage = cfg.max_damage;
+            else if (damage > 1000) damage = cfg.min_damage;
+
+            //send damage
+            if ((target == hero_arr[0] && alliance_p1[pid] == 0) || (target == hero_arr[0] && alliance_p1[pid] == 1 && setting_friendlyfire)) {
+                dmg_to_p1[pid] += damage;
+                if (longshot) dmg_to_p1_flag[pid] += setDamageFlag(1);
+                if (execution) dmg_to_p1_flag[pid] += setDamageFlag(2);
+            }
+            if ((target == hero_arr[1] && alliance_p2[pid] == 0) || (target == hero_arr[1] && alliance_p2[pid] == 1 && setting_friendlyfire)) {
+                dmg_to_p2[pid] += damage;
+                if (longshot) dmg_to_p2_flag[pid] += setDamageFlag(1);
+                if (execution) dmg_to_p2_flag[pid] += setDamageFlag(2);
+            }
+            if ((target == hero_arr[2] && alliance_p3[pid] == 0) || (target == hero_arr[2] && alliance_p3[pid] == 1 && setting_friendlyfire)) {
+                dmg_to_p3[pid] += damage;
+                if (longshot) dmg_to_p3_flag[pid] += setDamageFlag(1);
+                if (execution) dmg_to_p3_flag[pid] += setDamageFlag(2);
+            }
+            if ((target == hero_arr[3] && alliance_p4[pid] == 0) || (target == hero_arr[3] && alliance_p4[pid] == 1 && setting_friendlyfire)) {
+                dmg_to_p4[pid] += damage;
+                if (longshot) dmg_to_p4_flag[pid] += setDamageFlag(1);
+                if (execution) dmg_to_p4_flag[pid] += setDamageFlag(2);
+            }
+            if ((target == hero_arr[4] && alliance_p5[pid] == 0) || (target == hero_arr[4] && alliance_p5[pid] == 1 && setting_friendlyfire)) {
+                dmg_to_p5[pid] += damage;
+                if (longshot) dmg_to_p5_flag[pid] += setDamageFlag(1);
+                if (execution) dmg_to_p5_flag[pid] += setDamageFlag(2);
+            }
+            if ((target == hero_arr[5] && alliance_p6[pid] == 0) || (target == hero_arr[5] && alliance_p6[pid] == 1 && setting_friendlyfire)) {
+                dmg_to_p6[pid] += damage;
+                if (longshot) dmg_to_p6_flag[pid] += setDamageFlag(1);
+                if (execution) dmg_to_p6_flag[pid] += setDamageFlag(2);
+            }
+            if ((target == hero_arr[6] && alliance_p7[pid] == 0) || (target == hero_arr[6] && alliance_p7[pid] == 1 && setting_friendlyfire)) {
+                dmg_to_p7[pid] += damage;
+                if (longshot) dmg_to_p7_flag[pid] += setDamageFlag(1);
+                if (execution) dmg_to_p7_flag[pid] += setDamageFlag(2);
+            }
+            if ((target == hero_arr[7] && alliance_p8[pid] == 0) || (target == hero_arr[7] && alliance_p8[pid] == 1 && setting_friendlyfire)) {
+                dmg_to_p8[pid] += damage;
+                if (longshot) dmg_to_p8_flag[pid] += setDamageFlag(1);
+                if (execution) dmg_to_p8_flag[pid] += setDamageFlag(2);
+            }
+
+            if (execution) {
+                score.addExecution();
+                sound.execution();
+            }
+
+            //explodeables
+            if (Bring(P12, AtLeast, 1, u_barrel, l_ordercoord)) {
+                GiveUnits(1, u_barrel, P12, l_ordercoord, pid);
+            }
+            if (Bring(P12, AtLeast, 1, u_car, l_ordercoord)) {
+                GiveUnits(1, u_car, P12, l_ordercoord, pid);
+            }
+            if (Bring(P12, AtLeast, 1, u_truck, l_ordercoord)) {
+                GiveUnits(1, u_truck, P12, l_ordercoord, pid);
+            }
+
+            //proximity mine
+            if (Unit.getUnitType(target) == 74) {
+                if (Unit.getHitpoints(target) == 100) {
+                    Unit.setHitpoints(target, 101);
+                    const posx, posy = Unit.getPosition(target);
+                    setloc(l_main, posx, posy);
+                    GiveUnits(1, u_proximitymine, Unit.getPlayerID(target), l_main, pid);
+                }
+            }
+
+            //c4
+            if (Unit.getUnitType(target) == 218) {
+                if (Unit.getHitpoints(target) == 100) {
+                    Unit.setHitpoints(target, 101);
+                    const posx, posy = Unit.getPosition(target);
+                    setloc(l_main, posx, posy);
+                    GiveUnits(1, u_c4, Unit.getPlayerID(target), l_main, pid);
+                }
+            }
+            
+
+            if (setting_autoattack == false) stopAttack(pid);
+
+        } else if (can_attack[pid] == false) stopAttack(pid);
+        can_attack[pid] = true;
+
+        //EXPLODEABLES
+        if (Command(pid, AtLeast, 1, u_barrel) && explode0_state[pid] == 0) {
+            explode0_state[pid] = 8;
+            MoveLocation(l_main, u_barrel, pid, anywhere);
+            RemoveUnitAt(1, u_barrel, l_main, pid);
+        }
+        if (Command(pid, AtLeast, 1, u_car) && explode0_state[pid] == 0) {
+            explode0_state[pid] = 8;
+            MoveLocation(l_main, u_car, pid, anywhere);
+            RemoveUnitAt(1, u_car, l_main, pid);
+        }
+        if (Command(pid, AtLeast, 1, u_truck) && explode0_state[pid] == 0) {
+            explode0_state[pid] = 8;
+            MoveLocation(l_main, u_truck, pid, anywhere);
+            RemoveUnitAt(1, u_truck, l_main, pid);
+        }
+        //explosion + damage
+        if (explode0_state[pid] == 8) {
+            Utils.createImageSpriteAtLocation(Const.Image_Building_Explosion_Large, l_main);
+            sound_explosion[pid] = 1;
+            locAcquireLoc(l_main, l_8x8);
+            GiveUnits(All, u_barrel, P12, l_8x8, pid);
+            GiveUnits(All, u_car, P12, l_8x8, pid);
+            GiveUnits(All, u_truck, P12, l_8x8, pid);
+            
+            const explosion_x, explosion_y = Utils.getLocationPosition(l_main);
+
+            //set off proximity mines
+            for (var i = 0; i < 16; i++) {
+                if (mine_arr[i] > 0) {
+                    const posx, posy = Unit.getPosition(mine_arr[i]);
+                    const distance = trig.getDistance(explosion_x, explosion_y, posx, posy);
+                    if (distance <= 160) {
+                        Unit.setHitpoints(mine_arr[i], 120);
+                        setloc(l_main, posx, posy);
+                        GiveUnits(1, u_proximitymine, Unit.getPlayerID(mine_arr[i]), l_main, pid);
+                    }
+                }
+            }
+
+            //do explosion damage
+            for (var i = 0; i < 8; i++) {
+                const a = hero_posX[i] - explosion_x;
+                const b = hero_posY[i] - explosion_y;
+                var explosion_distance = sqrt( a*a + b*b );
+                if (explosion_distance <= 120) {
+                    var damage = cfg.explode0_dmg;
+                    for (explosion_distance += 0; explosion_distance >= 16; explosion_distance -= 16) damage -= cfg.explode0_dmgperdistanceloss;
+                    if (i == 0) {dmg_to_p1[pid] += damage; dmg_to_p1_flag[pid] += setDamageFlag(3);}
+                    if (i == 1) {dmg_to_p2[pid] += damage; dmg_to_p2_flag[pid] += setDamageFlag(3);}
+                    if (i == 2) {dmg_to_p3[pid] += damage; dmg_to_p3_flag[pid] += setDamageFlag(3);}
+                    if (i == 3) {dmg_to_p4[pid] += damage; dmg_to_p4_flag[pid] += setDamageFlag(3);}
+                    if (i == 4) {dmg_to_p5[pid] += damage; dmg_to_p5_flag[pid] += setDamageFlag(3);}
+                    if (i == 5) {dmg_to_p6[pid] += damage; dmg_to_p6_flag[pid] += setDamageFlag(3);}
+                    if (i == 6) {dmg_to_p7[pid] += damage; dmg_to_p7_flag[pid] += setDamageFlag(3);}
+                    if (i == 7) {dmg_to_p8[pid] += damage; dmg_to_p8_flag[pid] += setDamageFlag(3);}
+                }
+            }
+        }
+        if (explode0_state[pid] > 0) explode0_state[pid]--;
+        
+        //INCOMING DAMAGE
+        var invulnerable = 0;
+        if (hero_state[pid] == 1) invulnerable = 1;
+        if (invulnerable) {
+            for (var i = 0; i < 8; i++) {
+                if (pid == 0) {
+                    dmg_to_p1[i] = 0;
+                    dmg_to_p1_flag[i] = 0;
+                    dmg_to_p1buffer[i] = 0;
+                } else if (pid == 1) {
+                    dmg_to_p2[i] = 0;
+                    dmg_to_p2_flag[i] = 0;
+                    dmg_to_p2buffer[i] = 0;
+                } else if (pid == 2) {
+                    dmg_to_p3[i] = 0;
+                    dmg_to_p3_flag[i] = 0;
+                    dmg_to_p3buffer[i] = 0;
+                } else if (pid == 3) {
+                    dmg_to_p4[i] = 0;
+                    dmg_to_p4_flag[i] = 0;
+                    dmg_to_p4buffer[i] = 0;
+                } else if (pid == 4) {
+                    dmg_to_p5[i] = 0;
+                    dmg_to_p5_flag[i] = 0;
+                    dmg_to_p5buffer[i] = 0;
+                } else if (pid == 5) {
+                    dmg_to_p6[i] = 0;
+                    dmg_to_p6_flag[i] = 0;
+                    dmg_to_p6buffer[i] = 0;
+                } else if (pid == 6) {
+                    dmg_to_p7[i] = 0;
+                    dmg_to_p7_flag[i] = 0;
+                    dmg_to_p7buffer[i] = 0;
+                } else if (pid == 7) {
+                    dmg_to_p8[i] = 0;
+                    dmg_to_p8_flag[i] = 0;
+                    dmg_to_p8buffer[i] = 0;
+                }
+            }
+        }
+        var suffered_damage = 0;
+        var killed_by = 0;
+        if (pid == 0) {
+            for (var i = 0 ; i < 8 ; i++) {
+                if (dmg_to_p1[i] > 1) {
+                    hero_hitpoints[pid] -= dmg_to_p1[i];
+                    suffered_damage += dmg_to_p1[i];
+                    killed_by = killedBy(i, killed_by);
+                    if (killed_by == 0) assistdmg_to_p1[i] += dmg_to_p1[i];
+                    if (assistdmg_to_p1[i] > 100) assistdmg_to_p1[i] = 100;
+                    if (killed_by > 0) killed_with[pid] = checkDamageFlags(pid, i);
+                }
+            }
+        }
+        if (pid == 1) {
+            for (var i = 0 ; i < 8 ; i++) {
+                if (dmg_to_p2[i] > 1) {
+                    hero_hitpoints[pid] -= dmg_to_p2[i];
+                    suffered_damage += dmg_to_p2[i];
+                    killed_by = killedBy(i, killed_by);
+                    if (killed_by == 0) assistdmg_to_p2[i] += dmg_to_p2[i];
+                    if (assistdmg_to_p2[i] > 100) assistdmg_to_p2[i] = 100;
+                    if (killed_by > 0) killed_with[pid] = checkDamageFlags(pid, i);
+                }
+            }
+        }
+        if (pid == 2) {
+            for (var i = 0 ; i < 8 ; i++) {
+                if (dmg_to_p3[i] > 1) {
+                    hero_hitpoints[pid] -= dmg_to_p3[i];
+                    suffered_damage += dmg_to_p3[i];
+                    killed_by = killedBy(i, killed_by);
+                    if (killed_by == 0) assistdmg_to_p3[i] += dmg_to_p3[i];
+                    if (assistdmg_to_p3[i] > 100) assistdmg_to_p3[i] = 100;
+                    if (killed_by > 0) killed_with[pid] = checkDamageFlags(pid, i);
+                }
+            }
+        }
+        if (pid == 3) {
+            for (var i = 0 ; i < 8 ; i++) {
+                if (dmg_to_p4[i] > 1) {
+                    hero_hitpoints[pid] -= dmg_to_p4[i];
+                    suffered_damage += dmg_to_p4[i];
+                    killed_by = killedBy(i, killed_by);
+                    if (killed_by == 0) assistdmg_to_p4[i] += dmg_to_p4[i];
+                    if (assistdmg_to_p4[i] > 100) assistdmg_to_p4[i] = 100;
+                    if (killed_by > 0) killed_with[pid] = checkDamageFlags(pid, i);
+                }
+            }
+        }
+        if (pid == 4) {
+            for (var i = 0 ; i < 8 ; i++) {
+                if (dmg_to_p5[i] > 1) {
+                    hero_hitpoints[pid] -= dmg_to_p5[i];
+                    suffered_damage += dmg_to_p5[i];
+                    killed_by = killedBy(i, killed_by);
+                    if (killed_by == 0) assistdmg_to_p5[i] += dmg_to_p5[i];
+                    if (assistdmg_to_p5[i] > 100) assistdmg_to_p5[i] = 100;
+                    if (killed_by > 0) killed_with[pid] = checkDamageFlags(pid, i);
+                }
+            }
+        }
+        if (pid == 5) {
+            for (var i = 0 ; i < 8 ; i++) {
+                if (dmg_to_p6[i] > 1) {
+                    hero_hitpoints[pid] -= dmg_to_p6[i];
+                    suffered_damage += dmg_to_p6[i];
+                    killed_by = killedBy(i, killed_by);
+                    if (killed_by == 0) assistdmg_to_p6[i] += dmg_to_p6[i];
+                    if (assistdmg_to_p6[i] > 100) assistdmg_to_p6[i] = 100;
+                    if (killed_by > 0) killed_with[pid] = checkDamageFlags(pid, i);
+                }
+            }
+        }
+        if (pid == 6) {
+            for (var i = 0 ; i < 8 ; i++) {
+                if (dmg_to_p7[i] > 1) {
+                    hero_hitpoints[pid] -= dmg_to_p7[i];
+                    suffered_damage += dmg_to_p7[i];
+                    killed_by = killedBy(i, killed_by);
+                    if (killed_by == 0) assistdmg_to_p7[i] += dmg_to_p7[i];
+                    if (assistdmg_to_p7[i] > 100) assistdmg_to_p7[i] = 100;
+                    if (killed_by > 0) killed_with[pid] = checkDamageFlags(pid, i);
+                }
+            }
+        }
+        if (pid == 7) {
+            for (var i = 0 ; i < 8 ; i++) {
+                if (dmg_to_p8[i] > 1) {
+                    hero_hitpoints[pid] -= dmg_to_p8[i];
+                    suffered_damage += dmg_to_p8[i];
+                    killed_by = killedBy(i, killed_by);
+                    if (killed_by == 0) assistdmg_to_p8[i] += dmg_to_p8[i];
+                    if (assistdmg_to_p8[i] > 100) assistdmg_to_p8[i] = 100;
+                    if (killed_by > 0) killed_with[pid] = checkDamageFlags(pid, i);
+                }
+            }
+        }
+        
+        if (suffered_damage > 0) {
+            //effect
+            if (suffered_damage >= 100) {
+                effect_splat[pid] = 1;
+                death_pointX[pid], death_pointY[pid] = hero_posX[pid], hero_posY[pid];
+            } else {
+                setloc(l_main, hero_posX[pid], hero_posY[pid]);
+                CreateUnitWithProperties(1, u_ling, l_buffer, CurrentPlayer, UnitProperty(burrowed = true));
+                MoveUnit(All, u_ling, CurrentPlayer, l_buffer, l_main);
+                KillUnit(u_ling, CurrentPlayer);
+            }
+
+            //sound
+            sound.impact();
+        }
+        if (effect_splat[pid] > 0) {
+            setloc(l_main, death_pointX[pid], death_pointY[pid]);
+            var frame = effect_splat[pid] - 1;
+            effects.splat0(l_main, frame);
+            effect_splat[pid]++;
+            if (effect_splat[pid] > 4) effect_splat[pid] = 0;
+        }
+
+        //UAV
+        if (uav_state[pid] > 0) {
+            uav_state[pid]--;
+            if (uav_ping[pid] > 0) uav_ping[pid]--;
+            if (uav_ping[pid] == 0) {
+                uav_ping[pid] = 24;
+                RemoveUnit(u_vision, pid);
+                if (alliance_p1[pid] == 0 && pid != 0) {setloc(l_main, hero_posX[0], hero_posY[0]); CreateUnit(1, u_vision, l_main, pid);}
+                if (alliance_p2[pid] == 0 && pid != 1) {setloc(l_main, hero_posX[1], hero_posY[1]); CreateUnit(1, u_vision, l_main, pid);}
+                if (alliance_p3[pid] == 0 && pid != 2) {setloc(l_main, hero_posX[2], hero_posY[2]); CreateUnit(1, u_vision, l_main, pid);}
+                if (alliance_p4[pid] == 0 && pid != 3) {setloc(l_main, hero_posX[3], hero_posY[3]); CreateUnit(1, u_vision, l_main, pid);}
+                if (alliance_p5[pid] == 0 && pid != 4) {setloc(l_main, hero_posX[4], hero_posY[4]); CreateUnit(1, u_vision, l_main, pid);}
+                if (alliance_p6[pid] == 0 && pid != 5) {setloc(l_main, hero_posX[5], hero_posY[5]); CreateUnit(1, u_vision, l_main, pid);}
+                if (alliance_p7[pid] == 0 && pid != 6) {setloc(l_main, hero_posX[6], hero_posY[6]); CreateUnit(1, u_vision, l_main, pid);}
+                if (alliance_p8[pid] == 0 && pid != 7) {setloc(l_main, hero_posX[7], hero_posY[7]); CreateUnit(1, u_vision, l_main, pid);}
+            }
+            if (uav_state[pid] == 0) {
+                RemoveUnit(u_vision, pid);
+                uav_ping[pid] = 0;
+                sound.error();
+                DisplayText("\x13\x06! \x11UAV EXPIRED \x06!");
+            }
+        }
+
+        //AUGMENTS
+        const buttonpressed = key_z[pid];
+        if (buttonpressed && have_augment[pid] == 1) {
+            have_augment[pid] = 0;
+            aug_state[pid] = 1;
+            aug_cooldown[pid] = 0;
+            if (aug_type[pid] == 0) aug_ammo[pid] = cfg.pdw_ammo;
+            if (aug_type[pid] == 1) aug_ammo[pid] = cfg.lmg_ammo;
+            if (aug_type[pid] == 2) {aug_ammo[pid] = cfg.dbl_ammo; aug_loaded[pid] = cfg.dbl_clip;}
+            if (aug_type[pid] == 3) {aug_ammo[pid] = cfg.prc_ammo; aug_loaded[pid] = cfg.prc_clip;}
+            disableAugmentButton(pid);
+            clearButtons(hero_arr[pid]);
+            sound.augment();
+            DisplayText("\x13\x06! \x04EQUIPPED AUGMENT \x06!");
+            sound_broadcast[pid] = 1;
+        }
+        if (aug_state[pid] > 0 && aug_disabled[pid] == false) {
+            //disable normal rifle
+            can_attack[pid] = false;
+            //start firing
+            if (aug_state[pid] == 1 && order_attack && aug_cooldown[pid] == 0) {
+                aug_state[pid] = 2;
+                disableMovement(pid);
+            }
+            //stop firing
+            if (order_move && aug_state[pid] != 3) aug_state[pid] = 1;
+
+            //firing
+            if (aug_cooldown[pid] > 0) aug_cooldown[pid]--;
+            if (aug_state[pid] == 2 && aug_type[pid] == 0) {
+                if (aug_cooldown[pid] == 0 && aug_ammo[pid] > 0) {
+                    aug_ammo[pid]--;
+                    aug_cooldown[pid] = cfg.pdw_cool;
+                    const dX, dY = getMousePos(pid);
+                    prj.createProjectile(1, aug_type[pid], 0, hero_posX[pid], hero_posY[pid], dX, dY);
+                    sound_gun[pid] = 2;
+                }
+            }
+            if (aug_state[pid] == 2 && aug_type[pid] == 1) {
+                if (aug_cooldown[pid] == 0 && aug_ammo[pid] > 0) {
+                    aug_ammo[pid]--;
+                    aug_cooldown[pid] = cfg.lmg_cool;
+                    const dX, dY = getMousePos(pid);
+                    prj.createProjectile(1, aug_type[pid], 0, hero_posX[pid], hero_posY[pid], dX, dY);
+                    sound_gun[pid] = 3;
+                }
+            }
+            if (aug_state[pid] == 2 && aug_type[pid] == 2) {
+                if (aug_cooldown[pid] == 0 && aug_loaded[pid] > 0) {
+                    aug_loaded[pid]--;
+                    aug_state[pid] = 1;
+                    aug_cooldown[pid] = cfg.dbl_cool;
+                    const dX, dY = getMousePos(pid);
+                    prj.createProjectile(4, aug_type[pid], 0, hero_posX[pid], hero_posY[pid], dX, dY);
+                    sound_gun[pid] = 4;
+                    if (aug_loaded[pid] == 0 && aug_ammo[pid] > 0) {
+                        aug_state[pid] = 3;
+                        aug_cooldown[pid] = cfg.dbl_reload;
+                        DisplayText("\x13\x04Reloading...");
+                        sound.shotgun_reload();
+                    }
+                }
+            }
+            if (aug_state[pid] == 2 && aug_type[pid] == 3) {
+                if (aug_cooldown[pid] == 0 && aug_loaded[pid] > 0) {
+                    aug_loaded[pid]--;
+                    aug_state[pid] = 1;
+                    aug_cooldown[pid] = cfg.prc_cool;
+                    const dX, dY = getMousePos(pid);
+                    prj.createProjectile(1, aug_type[pid], 0, hero_posX[pid], hero_posY[pid], dX, dY);
+                    sound_gun[pid] = 5;
+                    if (aug_loaded[pid] == 0 && aug_ammo[pid] > 0) {
+                        aug_state[pid] = 3;
+                        aug_cooldown[pid] = cfg.prc_reload;
+                        DisplayText("\x13\x04Reloading...");
+                        sound.sniper_reload();
+                    }
+                }
+            }
+
+            //reload
+            if (aug_state[pid] == 3 && aug_cooldown[pid] == 0) {
+                if (aug_type[pid] == 2) {
+                    aug_loaded[pid] = cfg.dbl_clip;
+                    aug_ammo[pid] -= cfg.dbl_clip;
+                    aug_state[pid] = 1;
+                    DisplayText("\x13\x04Done!");
+                    sound.shotgun_reloaddone();
+                }
+                if (aug_type[pid] == 3) {
+                    aug_loaded[pid] = cfg.prc_clip;
+                    aug_ammo[pid] -= cfg.prc_clip;
+                    aug_state[pid] = 1;
+                    DisplayText("\x13\x04Done!");
+                    sound.sniper_reloaddone();
+                }
+            }
+
+            //out of ammo
+            if (aug_ammo[pid] == 0 && aug_loaded[pid] == 0) {
+                aug_state[pid] = 0;
+                sound.error();
+                DisplayText("\x13\x06! \x11AUGMENT AMMO DEPLETED \x06!");
+            }
+            if (aug_type[pid] == 2 || aug_type[pid] == 3) eprintf("\x04AMMO: {} | {}", aug_loaded[pid], aug_ammo[pid]);
+            else eprintf("\x04AMMO: {}", aug_ammo[pid]);
+        }
+        aug_disabled[pid] = false;
+
+        //AIRSTRIKE
+        if (key_x[pid] && key_x_rel[pid] == 0) key_x_rel[pid] = -1;
+        else if (key_x[pid] == 0 && key_x_rel[pid] == -1) key_x_rel[pid] = 1;
+        else if (key_x[pid] == 0 && key_x_rel[pid] == 1) key_x_rel[pid] = 0;
+        if (have_strike[pid] > 0 && key_x_rel[pid] == 1 && strike_state[pid] == 0) {
+            strike_state[pid] = 1;
+        } else if (strike_state[pid] == 1 && key_x_rel[pid] == 1) {
+            strike_state[pid] = 0;
+            RemoveUnit(u_circle, pid);
+            clearTextLines(0, 1);
+        }
+
+        //initialize
+        if (strike_state[pid] == 1) {
+            RemoveUnit(u_circle, pid);
+            const mx, my = getMousePos(pid);
+            const a = trig.getAngle(hero_posX[pid], hero_posY[pid], mx, my);
+            strike_angle[pid] = a;
+            const angle = trig.flipAngle(a);
+            var posX, posY = hero_posX[pid], hero_posY[pid];
+            const range = cfg.strike_range / 32;
+            //START POINT
+            for (var i = 0; i < range / 2; i++) {
+                posX, posY = trig.ray(posX, posY, angle, 32);
+            }
+            if (posX > 8192 && posX < 10000) posX = 8160;
+            else if (posX > 10000) posX = 32;
+            if (posY > 8192 && posY < 10000) posY = 8160;
+            else if (posY > 10000) posY = 32;
+            strike_startX[pid], strike_startY[pid] = posX, posY;
+            //END POINT
+            posX, posY = hero_posX[pid], hero_posY[pid];
+            for (var i = 0; i < range / 2; i++) {
+                posX, posY = trig.ray(posX, posY, a, 32);
+                setloc(l_main, posX, posY);
+                createImageLocal(571, l_main);
+            }
+            if (posX > 8192 && posX < 10000) posX = 8160;
+            else if (posX > 10000) posX = 32;
+            if (posY > 8192 && posY < 10000) posY = 8160;
+            else if (posY > 10000) posY = 32;
+            strike_endX[pid], strike_endY[pid] = posX, posY;
+            //LAUNCH
+            if (leftclick) {
+                clearTextLines(0, 1);
+                have_strike[pid] = 0;
+                disableStrikeButton(pid);
+                strike_state[pid] = 2;
+                sound_killstreak[pid] = 1;
+                RemoveUnit(u_circle, pid);
+                setloc(l_main, hero_posX[pid], hero_posY[pid]);
+                MinimapPing(l_main);
+                const t, b, l, r = getZoneBounds();
+                //GET FLY START
+                posX, posY = strike_startX[pid], strike_startY[pid];
+                for (var i = 0; i < 64; i++) {
+                    if (posX > r || posX < l || posY > b || posY < t) {
+                        //position is outside of the zone boundary
+                        strike_fstartX[pid], strike_fstartY[pid] = posX, posY;
+                        break;
+                    }
+                    posX, posY = trig.ray(posX, posY, angle, 32);
+                }
+                //GET FLY END
+                posX, posY = strike_endX[pid], strike_endY[pid];
+                for (var i = 0; i < 64; i++) {
+                    if (posX > r || posX < l || posY > b || posY < t) {
+                        //position is outside of the zone boundary
+                        strike_fendX[pid], strike_fendY[pid] = posX, posY;
+                        break;
+                    }
+                    posX, posY = trig.ray(posX, posY, a, 32);
+                }
+            }
+        }
+        if (strike_state[pid] > 1) {
+            strike_state[pid]++;
+            //5.1s - 6.5s: first barrage
+            if (strike_state[pid] == 125) strike_brgX[pid], strike_brgY[pid] = strike_startX[pid], strike_startY[pid];
+            if (strike_state[pid] > 125 && strike_state[pid] < 157) {
+                //move barrage over time
+                strike_brgX[pid], strike_brgY[pid] = trig.ray(strike_brgX[pid], strike_brgY[pid], strike_angle[pid], 32);
+                var sX, sY = strike_brgX[pid], strike_brgY[pid];
+                var eX, eY = strike_endX[pid], strike_endY[pid];
+                //randomize barrage offset
+                const rx = random(1, cfg.strike_barrageoffset);
+                if (rx < (cfg.strike_barrageoffset / 2) + 1) {sX -= rx; eX -= rx;}
+                else {sX += rx; eX += rx;}
+                const ry = random(1, cfg.strike_barrageoffset);
+                if (ry < (cfg.strike_barrageoffset / 2) + 1) {sY -= ry; eY -= ry;}
+                else {sY += ry; eY += ry;}
+                prj.createProjectile(1, 4, 0, sX, sY, eX, eY);
+            }
+            //6s: create first valkyrie
+            if (strike_state[pid] == 147) {
+                setloc(l_main, strike_fstartX[pid], strike_fstartY[pid]);
+                CreateUnitWithProperties(1, u_angel, l_main, pid, UnitProperty(invincible = true));
+                setloc(l_main, strike_fendX[pid], strike_fendY[pid]);
+                Order(u_angel, pid, anywhere, Move, l_main);
+            }
+            //8.4s - 9.9s: start second barrage
+            if (strike_state[pid] == 203) strike_brgX[pid], strike_brgY[pid] = strike_startX[pid], strike_startY[pid];
+            if (strike_state[pid] > 203 && strike_state[pid] < 239) {
+                //move barrage over time
+                strike_brgX[pid], strike_brgY[pid] = trig.ray(strike_brgX[pid], strike_brgY[pid], strike_angle[pid], 32);
+                var sX, sY = strike_brgX[pid], strike_brgY[pid];
+                var eX, eY = strike_endX[pid], strike_endY[pid];
+                //randomize barrage offset
+                const rx = random(1, cfg.strike_barrageoffset);
+                if (rx < (cfg.strike_barrageoffset / 2) + 1) {sX -= rx; eX -= rx;}
+                else {sX += rx; eX += rx;}
+                const ry = random(1, cfg.strike_barrageoffset);
+                if (ry < (cfg.strike_barrageoffset / 2) + 1) {sY -= ry; eY -= ry;}
+                else {sY += ry; eY += ry;}
+                prj.createProjectile(1, 4, 0, sX, sY, eX, eY);
+            }
+            //9.4s: create second valkyrie
+            if (strike_state[pid] == 227) {
+                setloc(l_main, strike_fstartX[pid], strike_fstartY[pid]);
+                CreateUnitWithProperties(1, u_angel, l_main, pid, UnitProperty(invincible = true));
+                setloc(l_main, strike_fendX[pid], strike_fendY[pid]);
+                Order(u_angel, pid, anywhere, Move, l_main);
+            }
+            //13.1s: end
+            if (strike_state[pid] > 318) {
+                strike_state[pid] = 0;
+                RemoveUnit(u_angel, pid);
+            }
+        }
+
+        //EQUIPMENT
+        if (game_state > 0 && countdown_timer == 0) {
+            if (equipm_type[pid] == 0) {
+                if (key_g_rel[pid] == 2 && equipm_state[pid] == 0 && frags_held[pid] > 0) {
+                    equipm_state[pid] = 1;
+                    frags_held[pid]--;
+                }
+                if (equipm_state[pid] > 0) {
+                    equipm_state[pid]++;
+                    if (equipm_state[pid] < cfg.frag_time && equipm_state[pid] > 3) displayInteraction(2, equipm_state[pid]);
+                    if (equipm_state[pid] < 1000 && key_g_rel[pid] == 1) {
+                        eprintf("\x0B ");
+                        const dX, dY = getMousePos(pid);
+                        prj.createProjectile(1, 5, equipm_state[pid], hero_posX[pid], hero_posY[pid], dX, dY);
+                        sendThrowSound(hero_posX[pid], hero_posY[pid]);
+                        equipm_state[pid] = 1000;
+                    } else if (equipm_state[pid] >= cfg.frag_time && equipm_state[pid] < 1000) {
+                        eprintf("\x0B ");
+                        prj.createExplosion(0, equipm_state[pid], hero_posX[pid], hero_posY[pid]);
+                        equipm_state[pid] = 1000;
+                    }
+                    if (equipm_state[pid] >= 1024) equipm_state[pid] = 0;
+                }
+            } else if (equipm_type[pid] == 1) {
+                if (key_g_rel[pid] == 2 && equipm_state[pid] == 0 && smokes_held[pid] > 0) {
+                    equipm_state[pid] = 1;
+                    smokes_held[pid]--;
+                }
+                if (equipm_state[pid] > 0) {
+                    equipm_state[pid]++;
+                    if (equipm_state[pid] < cfg.frag_time && equipm_state[pid] > 3) displayInteraction(2, equipm_state[pid]);
+                    if (equipm_state[pid] < 1000 && key_g_rel[pid] == 1) {
+                        eprintf("\x0B ");
+                        const dX, dY = getMousePos(pid);
+                        prj.createProjectile(1, 6, equipm_state[pid], hero_posX[pid], hero_posY[pid], dX, dY);
+                        sendThrowSound(hero_posX[pid], hero_posY[pid]);
+                        equipm_state[pid] = 1000;
+                    } else if (equipm_state[pid] >= cfg.frag_time && equipm_state[pid] < 1000) {
+                        eprintf("\x0B ");
+                        createSmoke(hero_posX[pid], hero_posY[pid]);
+                        equipm_state[pid] = 1000;
+                    }
+                    if (equipm_state[pid] >= 1024) equipm_state[pid] = 0;
+                }
+            } else if (equipm_type[pid] == 2) {
+                if (key_g_rel[pid] == 2 && equipm_state[pid] == 0 && flashes_held[pid] > 0) {
+                    equipm_state[pid] = 1;
+                    flashes_held[pid]--;
+                }
+                if (equipm_state[pid] > 0) {
+                    equipm_state[pid]++;
+                    if (equipm_state[pid] < cfg.frag_time && equipm_state[pid] > 3) displayInteraction(2, equipm_state[pid]);
+                    if (equipm_state[pid] < 1000 && key_g_rel[pid] == 1) {
+                        eprintf("\x0B ");
+                        const dX, dY = getMousePos(pid);
+                        prj.createProjectile(1, 7, equipm_state[pid], hero_posX[pid], hero_posY[pid], dX, dY);
+                        sendThrowSound(hero_posX[pid], hero_posY[pid]);
+                        equipm_state[pid] = 1000;
+                    } else if (equipm_state[pid] >= cfg.frag_time && equipm_state[pid] < 1000) {
+                        eprintf("\x0B ");
+                        prj.createFlash(hero_posX[pid], hero_posY[pid]);
+                        equipm_state[pid] = 1000;
+                    }
+                    if (equipm_state[pid] >= 1024) equipm_state[pid] = 0;
+                }
+            } else if (equipm_type[pid] == 3) {
+                if (key_g_rel[pid] == 1 && equipm_state[pid] == 0 && mines_held[pid] > 0) {
+                    equipm_state[pid] = 1;
+                    mines_held[pid]--;
+                }
+                if (equipm_state[pid] > 0) {
+                    createProximityMine(hero_posX[pid], hero_posY[pid]);
+                    equipm_state[pid] = 0;
+                }
+            } else if (equipm_type[pid] == 4) {
+                if (key_g[pid] == 1 && equipm_state[pid] == 0) {
+                    equipm_state[pid] = 1;
+                }
+                if (equipm_state[pid] == 100) {
+                    equipm_state[pid] = 0;
+                }
+                if (equipm_state[pid] > 0 && equipm_state[pid] < 10) {
+                    equipm_state[pid]++;
+                    if (key_g[pid] == 1 && equipm_state[pid] > 2) {
+                        //detonate because double tap
+                        DisplayText("double tap");
+                        equipm_state[pid] = 100;
+                    } else if (equipm_state[pid] >= 10 && c4_held[pid] > 0) {
+                        c4_held[pid]--;
+                        const dX, dY = getMousePos(pid);
+                        prj.createProjectile(1, 8, 0, hero_posX[pid], hero_posY[pid], dX, dY);
+                        sendC4ThrowSound(hero_posX[pid], hero_posY[pid]);
+                        equipm_state[pid] = 0;
+                    }
+                }
+            }
+        }
+
+        //MANAGE PROXIMITY MINE
+        for (var i = 0; i < 16; i++) {
+            if (mine_arr[i] > 0) {
+                const cunit_owner = Unit.getPlayerID(mine_arr[i]);
+                if (cunit_owner == pid) {
+                    const hp = Unit.getHitpoints(mine_arr[i]);
+                    const posx, posy = Unit.getPosition(mine_arr[i]);
+                    //standby state
+                    if (hp == 100) {
+                        if (mine_visual == 0) {
+                            setloc(l_main, posx + 1, posy);
+                            Utils.createImageSpriteAtLocation(233, l_main);
+                        }
+                        for (var p = 0; p < 8; p++) {
+                            if (p == pid || isAlly(p)) {
+                                continue;
+                            } else {
+                                const distance = trig.getDistance(hero_posX[p], hero_posY[p], posx, posy);
+                                if (distance <= cfg.mine_trigger_distance) {
+                                    Unit.setHitpoints(mine_arr[i], 101);
+                                    break;
+                                }
+                            }
+                        }
+                    //detonating state
+                    } else if (hp > 100) {
+                        Unit.setHitpoints(mine_arr[i], hp + 1);
+                        if (hp % 5 == 0) {
+                            sendProximityMineBeep(posx, posy);
+                            setloc(l_main, posx + 1, posy);
+                            Utils.createImageSpriteAtLocation(233, l_main);
+                        }
+                        if (hp >= 125) {
+                            prj.createExplosion(0, 60, posx, posy);
+                            Unit.setHitpoints(mine_arr[i], 0);
+                            removeUnitXY(1, u_proximitymine, pid, posx, posy);
+                            mine_arr[i] = 0;
+                            //explode nearby proximity mines
+                            for (var j = 0; j < 16; j++) {
+                                if (mine_arr[j] > 0) {
+                                    const mposx, mposy = Unit.getPosition(mine_arr[j]);
+                                    const distance = trig.getDistance(posx, posy, mposx, mposy);
+                                    if (distance <= 160) {
+                                        Unit.setHitpoints(mine_arr[j], 125);
+                                        setloc(l_main, mposx, mposy);
+                                        GiveUnits(1, u_proximitymine, Unit.getPlayerID(mine_arr[j]), l_main, pid);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //MANAGE C4
+        for (var i = 0; i < 16; i++) {
+            if (c4_arr[i] > 0) {
+                const cunit_owner = Unit.getPlayerID(c4_arr[i]);
+                if (cunit_owner == pid) {
+                    //set to detonation if player used detonater
+                    if (equipm_type[pid] == 4 && equipm_state[pid] == 100) Unit.setHitpoints(c4_arr[i], 101);
+                    //detonated state
+                    if (Unit.getHitpoints(c4_arr[i]) > 100) {
+                        const posx, posy = Unit.getPosition(c4_arr[i]);
+                        prj.createExplosion(0, 60, posx, posy);
+                        c4_arr[i] = 0;
+                        Unit.setHitpoints(c4_arr[i], 0);
+                        removeUnitXY(1, u_c4, pid, posx, posy);
+                    }
+                }
+            }
+        }
+        
+        
+        prj.updateProjectiles();
+        prj.updateExplosions();
+        
+        
+
+        //HITPOINTS
+        //regen
+        if (suffered_damage || hero_hitpoints[pid] >= 100) hero_regen_state[pid] = 0;
+        if (hero_hitpoints[pid] < 100 && hero_regen_state[pid] < cfg.regen_time) hero_regen_state[pid]++;
+        if (hero_regen_state[pid] >= cfg.regen_time) {
+            hero_hitpoints[pid] += cfg.regen_factor;
+            if (hero_regen_state[pid] == cfg.regen_time) clearAssistOthers(pid);
+            if (hero_hitpoints[pid] > 100) {
+                hero_hitpoints[pid] = 100;
+            }
+        }
+
+        //player dies
+        was_killed[pid] = 0;
+        afterdeathtimer[pid]--;
+        if (hero_hitpoints[pid] <= 0 || hero_hitpoints[pid] > 100) {
+            if (game_state == 0) {
+                initializePlayer();
+            } else {
+                current_deaths[pid] += 1;
+                death_pointX[pid], death_pointY[pid] = hero_posX[pid], hero_posY[pid];
+                heroAcquireLocation(l_main);
+                CenterView(l_main);
+                putPlayerBack();
+                initializePlayer();
+                afterdeathtimer[pid] = 37;
+                CreateUnitWithProperties(1, u_tempvision, l_main, pid, UnitProperty(invincible = true));
+                hero_state[pid] = 1;
+                CreateUnit(1, u_ghostalt, l_main, pid);
+                KillUnit(u_ghostalt, pid);
+                if (killed_by > 0) {
+                    was_killed[pid] = killed_by;
+                    last_killed_by[pid] = killed_by;
+                    var p = killed_by - 1;
+                    if (pid == p) {
+                        f_printAll("{:c}{:n} \x04Committed Suicide!", pid, pid);
+                    } else if (killed_with[pid] == 2) {
+                        f_printAll("{:c}{:n} \x04Executed {:c}{:n}", p, p, pid, pid);
+                    } else if (killed_with[pid] == 3) {
+                        f_printAll("{:c}{:n} \x04Exploded {:c}{:n}", p, p, pid, pid);
+                    } else if (killed_with[pid] == 4) {
+                        f_printAll("{:c}{:n} \x04Killed {:c}{:n} \x04with \x02SMG", p, p, pid, pid);
+                    } else if (killed_with[pid] == 5) {
+                        f_printAll("{:c}{:n} \x04Killed {:c}{:n} \x04with \x02LMG", p, p, pid, pid);
+                    } else if (killed_with[pid] == 6) {
+                        f_printAll("{:c}{:n} \x04Killed {:c}{:n} \x04with \x02Shotgun", p, p, pid, pid);
+                    } else if (killed_with[pid] == 7) {
+                        f_printAll("{:c}{:n} \x04Killed {:c}{:n} \x04with \x02Precision Rifle", p, p, pid, pid);
+                    } else {
+                        f_printAll("{:c}{:n} \x04Killed {:c}{:n}", p, p, pid, pid);
+                    }
+                }
+                screen.printf("\x04Kills: {} \x02| \x04Deaths: {} \x02| \x04Assists: {}", current_kills[pid], current_deaths[pid], current_assists[pid]);
+            }
+        }
+        if (afterdeathtimer[pid] == 1) {
+            RemoveUnit(u_tempvision, pid);
+            heroAcquireLocation(l_main);
+            CenterView(l_main);
+        }
+
+        //set hitpoints
+        Unit.setHitpoints(hero_arr[pid], hero_hitpoints[pid]);
+
+        //RESPAWN
+        if (hero_state[pid] == 1) {
+            spawn_timer[pid]++;
+            aug_disabled[pid] = true;
+            Unit.setGroundWeaponCooldown(hero_arr[pid], 0);
+            if (spawn_timer[pid] > cfg.respawntime) {
+                const spawn_valid, x, y = respawn.respawn();
+                if (spawn_valid) {
+                    setloc(l_main, x, y);
+                    teleportHeroPoint(pid, x, y);
+                    hero_state[pid] = 0;
+                    spawn_timer[pid] = 0;
+                    Order(u_hero, pid, anywhere, Move, l_main);
+                    teleportHero(pid, l_main);
+                    clearAssistOthers(pid);
+                    killstreak[pid] = 0;
+                    streakA_thislife[pid] = 0;
+                    streakB_thislife[pid] = 0;
+                    streakC_thislife[pid] = 0;
+                    aug_type[pid] = selected_augment[pid];
+                    equipm_type[pid] = selected_equipment[pid];
+                    restockEquipment();
+                }
+            }
+        }
+        
+        //GOT AN ASSIST
+        if (was_killed[0] > 0 && was_killed[0] != pid + 1 && pid != 0 && assistdmg_to_p1[pid] > 0) {score.addAssist(assistdmg_to_p1[pid]); current_assists[pid] += 1;}
+        if (was_killed[1] > 0 && was_killed[1] != pid + 1 && pid != 1 && assistdmg_to_p2[pid] > 0) {score.addAssist(assistdmg_to_p2[pid]); current_assists[pid] += 1;}
+        if (was_killed[2] > 0 && was_killed[2] != pid + 1 && pid != 2 && assistdmg_to_p3[pid] > 0) {score.addAssist(assistdmg_to_p3[pid]); current_assists[pid] += 1;}
+        if (was_killed[3] > 0 && was_killed[3] != pid + 1 && pid != 3 && assistdmg_to_p4[pid] > 0) {score.addAssist(assistdmg_to_p4[pid]); current_assists[pid] += 1;}
+        if (was_killed[4] > 0 && was_killed[4] != pid + 1 && pid != 4 && assistdmg_to_p5[pid] > 0) {score.addAssist(assistdmg_to_p5[pid]); current_assists[pid] += 1;}
+        if (was_killed[5] > 0 && was_killed[5] != pid + 1 && pid != 5 && assistdmg_to_p6[pid] > 0) {score.addAssist(assistdmg_to_p6[pid]); current_assists[pid] += 1;}
+        if (was_killed[6] > 0 && was_killed[6] != pid + 1 && pid != 6 && assistdmg_to_p7[pid] > 0) {score.addAssist(assistdmg_to_p7[pid]); current_assists[pid] += 1;}
+        if (was_killed[7] > 0 && was_killed[7] != pid + 1 && pid != 7 && assistdmg_to_p8[pid] > 0) {score.addAssist(assistdmg_to_p8[pid]); current_assists[pid] += 1;}
+
+        //GOT A LONGSHOT
+        if (was_killed[0] == pid + 1 && pid != 0 && alliance_p1[pid] == 0 && killed_with[0] == 1) {score.addLongshot();}
+        if (was_killed[1] == pid + 1 && pid != 1 && alliance_p2[pid] == 0 && killed_with[1] == 1) {score.addLongshot();}
+        if (was_killed[2] == pid + 1 && pid != 2 && alliance_p3[pid] == 0 && killed_with[2] == 1) {score.addLongshot();}
+        if (was_killed[3] == pid + 1 && pid != 3 && alliance_p4[pid] == 0 && killed_with[3] == 1) {score.addLongshot();}
+        if (was_killed[4] == pid + 1 && pid != 4 && alliance_p5[pid] == 0 && killed_with[4] == 1) {score.addLongshot();}
+        if (was_killed[5] == pid + 1 && pid != 5 && alliance_p6[pid] == 0 && killed_with[5] == 1) {score.addLongshot();}
+        if (was_killed[6] == pid + 1 && pid != 6 && alliance_p7[pid] == 0 && killed_with[6] == 1) {score.addLongshot();}
+        if (was_killed[7] == pid + 1 && pid != 7 && alliance_p8[pid] == 0 && killed_with[7] == 1) {score.addLongshot();}
+
+        //GOT A KILL
+        var justgotkill = 0;
+        if (was_killed[0] == pid + 1 && pid != 0 && alliance_p1[pid] == 0) {score.addKill(); current_kills[pid] += 1; justgotkill = 1; killstreak[pid] += 1; multikill[pid] += 1;}
+        if (was_killed[1] == pid + 1 && pid != 1 && alliance_p2[pid] == 0) {score.addKill(); current_kills[pid] += 1; justgotkill = 1; killstreak[pid] += 1; multikill[pid] += 1;}
+        if (was_killed[2] == pid + 1 && pid != 2 && alliance_p3[pid] == 0) {score.addKill(); current_kills[pid] += 1; justgotkill = 1; killstreak[pid] += 1; multikill[pid] += 1;}
+        if (was_killed[3] == pid + 1 && pid != 3 && alliance_p4[pid] == 0) {score.addKill(); current_kills[pid] += 1; justgotkill = 1; killstreak[pid] += 1; multikill[pid] += 1;}
+        if (was_killed[4] == pid + 1 && pid != 4 && alliance_p5[pid] == 0) {score.addKill(); current_kills[pid] += 1; justgotkill = 1; killstreak[pid] += 1; multikill[pid] += 1;}
+        if (was_killed[5] == pid + 1 && pid != 5 && alliance_p6[pid] == 0) {score.addKill(); current_kills[pid] += 1; justgotkill = 1; killstreak[pid] += 1; multikill[pid] += 1;}
+        if (was_killed[6] == pid + 1 && pid != 6 && alliance_p7[pid] == 0) {score.addKill(); current_kills[pid] += 1; justgotkill = 1; killstreak[pid] += 1; multikill[pid] += 1;}
+        if (was_killed[7] == pid + 1 && pid != 7 && alliance_p8[pid] == 0) {score.addKill(); current_kills[pid] += 1; justgotkill = 1; killstreak[pid] += 1; multikill[pid] += 1;}
+        if (justgotkill) {
+            sound.kill();
+            if (killstreak[pid] == 1) DisplayText("\x13\x061st Kill!");
+            else if (killstreak[pid] == 2) DisplayText("\x13\x062nd Kill!");
+            else if (killstreak[pid] == 3) DisplayText("\x13\x063rd Kill!");
+            else if (killstreak[pid] > 3) screen.printf("\x13\x06{}th Kill!", killstreak[pid]);
+
+            //get killstreak
+            if (killstreak[pid] >= 2 && streakA_thislife[pid] == 0) {
+                streakA_thislife[pid] = 1;
+                uav_state[pid] = cfg.uav_time;
+                sound.uav();
+                DisplayText("\x13\x06! \x04UAV ACTIVE \x06!");
+            }
+            if (killstreak[pid] >= 4 && streakB_thislife[pid] == 0) {
+                streakB_thislife[pid] = 1;
+                have_augment[pid] = 1;
+                enableAugmentButton(pid);
+                sound.augment();
+                DisplayText("\x13\x06! \x04Augment Acquired. \x1F[Z] \x04to Use \x06!");
+            }
+            if (killstreak[pid] >= 8 && streakC_thislife[pid] == 0) {
+                streakC_thislife[pid] = 1;
+                have_strike[pid] = 1;
+                enableStrikeButton(pid);
+                sound.got_angel();
+                DisplayText("\x13\x06! \x1CAngels of Death \x04Acquired. \x1F[X] \x04to Use \x06!");
+            }
+
+            //multikill
+            multikill_timer[pid] = cfg.multikill_time;
+            if (multikill[pid] == 2) f_printAll("{:c}{:n} \x04Got a \x1FDOUBLE KILL!", pid, pid);
+            else if (multikill[pid] == 3) f_printAll("{:c}{:n} \x04Got a \x1FTRIPLE KILL!", pid, pid);
+            else if (multikill[pid] == 4) f_printAll("{:c}{:n} \x04Got a \x1FQUAD KILL!", pid, pid);
+            else if (multikill[pid] == 5) f_printAll("{:c}{:n} \x04is \x1FUNSTOPPABLE!", pid, pid);
+            else if (multikill[pid] == 6) f_printAll("{:c}{:n} \x04is \x1FSUPREME!", pid, pid);
+            else if (multikill[pid] == 7) f_printAll("{:c}{:n} \x04is \x1FDEMONIC!", pid, pid);
+            else if (multikill[pid] == 8) f_printAll("{:c}{:n} \x04is \x1FGOD-LIKE!", pid, pid);
+
+            //swagkill
+            if (hero_dash[pid] >= 1 && hero_dash[pid] <= cfg.dash_time) {
+                score.addSwag();
+                sound.swag();
+            }
+        }
+        if (multikill_timer[pid] > 0) {
+            multikill_timer[pid]--;
+            if (multikill_timer[pid] == 0) multikill[pid] = 0;
+        }
+
+        //FLAG
+        if (game_mode == 2) {
+            for (var i = 0; i < 2; i++) {
+                const x = Unit.getPositionX(flag_arr[i]);
+                const y = Unit.getPositionY(flag_arr[i]);
+                setloc(l_main, x, y);
+                locAcquireLoc(l_main, l_3x3);
+                if (heroAt(pid, l_3x3)) {
+                    if (team[pid] != i && flag_follow[i] == 0) { //pick up the flag if its not your flag
+                        flag_follow[i] = pid+1;
+                        flag_return[i] = 0;
+                        sound_broadcast[pid] = 2;
+                    } else if (team[pid] == i && flag_follow[i] == 0) { //return the flag if its your flag
+                        if (flagIsHome(i) == false) {
+                            flag_return[i]++;
+                            displayInteraction(0, flag_return[i]);
+                            if (flag_return[i] >= getFlagCapTime()) {
+                                flag_return[i] = 0;
+                                returnFlag(i);
+                                broadcast[pid] = 3;
+                                eprintf("\x0B ");
+                            }
+                        }
+                    }
+                }
+
+                if (flag_visual == 1) {
+                    setloc(l_main, x, y);
+                    MinimapPing(l_main);
+                }
+            }
+        }
+
+        //SWITCH TEAMS
+        if (heroAtRect(pid, 32, 479, 64, 255) && team[pid] != 0) {
+            team[pid] = 0;
+            eprintf("\x04Switched to \x06TEAM EMBER");
+        }
+        if (heroAtRect(pid, 480, 927, 64, 255) && team[pid] != 1) {
+            team[pid] = 1;
+            eprintf("\x04Switched to \x1CTEAM SHADE");
+        }
+        if (heroAtRect(pid, 32, 479, 256, 447) && team[pid] != 2) {
+            team[pid] = 2;
+            eprintf("\x04Switched to \x17TEAM ANGEL");
+        }
+        if (heroAtRect(pid, 480, 927, 256, 447) && team[pid] != 3) {
+            team[pid] = 3;
+            eprintf("\x04Switched to \x18TEAM VENOM");
+        } 
+        if (heroAtRect(pid, 32, 927, 64, 447)) {updateAllianceStatus();}
+
+        //VISION
+        if (setting_friendlyvision == true) {
+            if (alliance_p1[pid] == 1 && pid != 0) getVision(0);
+            if (alliance_p2[pid] == 1 && pid != 1) getVision(1);
+            if (alliance_p3[pid] == 1 && pid != 2) getVision(2);
+            if (alliance_p4[pid] == 1 && pid != 3) getVision(3);
+            if (alliance_p5[pid] == 1 && pid != 4) getVision(4);
+            if (alliance_p6[pid] == 1 && pid != 5) getVision(5);
+            if (alliance_p7[pid] == 1 && pid != 6) getVision(6);
+            if (alliance_p8[pid] == 1 && pid != 7) getVision(7);
+        }
+        if (alliance_p1[pid] == 0 && pid != 0) loseVision(0);
+        if (alliance_p2[pid] == 0 && pid != 1) loseVision(1);
+        if (alliance_p3[pid] == 0 && pid != 2) loseVision(2);
+        if (alliance_p4[pid] == 0 && pid != 3) loseVision(3);
+        if (alliance_p5[pid] == 0 && pid != 4) loseVision(4);
+        if (alliance_p6[pid] == 0 && pid != 5) loseVision(5);
+        if (alliance_p7[pid] == 0 && pid != 6) loseVision(6);
+        if (alliance_p8[pid] == 0 && pid != 7) loseVision(7);
+
+        //flash effect on vision
+        if (ailment_flash_timer[pid] > 0) {
+            if (ailment_flash_timer[pid] == cfg.flash_duration) {
+                setloc(l_main, hero_posX[pid], hero_posY[pid]);
+                CenterView(l_main);
+                if (ailment_flash[pid] >= 9) loseVision(pid);
+                DisplayText("\x13\x1F! BLINDED !");
+            }
+
+            ailment_flash_timer[pid]--;
+
+            RemoveUnit(u_vision, pid);
+            setUnitSight(u_vision, 9 - ailment_flash[pid]);
+            setloc(l_main, hero_posX[pid], hero_posY[pid]);
+            CreateUnit(1, u_vision, l_main, pid);
+            setUnitSight(u_vision, 3);
+
+            if (Unit.getIsBlind(hero_arr[pid]) == 0) Unit.setIsBlind(hero_arr[pid], 1);
+            if (ailment_flash_timer[pid] == 0) {
+                Unit.setIsBlind(hero_arr[pid], 0);
+                ailment_flash[pid] = 0;
+                getVision(pid);
+            }
+        }
+        
+        //MENU
+        //keypress to open menu
+        if (key_menu[pid] == 1 && menu_state[pid] == 0) {
+            menu_state[pid] = 1;
+            sound.select0();
+        } else if (key_menu[pid] == 1 && menu_state[pid] > 0) {
+            menu_state[pid] = 0;
+            clearTextLines(0, 7);
+            sound.select0();
+        }
+        if (game_state == 0 && menu_state[pid] == 0) menu_state[pid] = 1;
+        if (menu_state[pid] > 0) {
+            game_mode, game_zone, ffa_score_max, tdm_score_max, ctf_score_max = menu.updateDisplay();
+        }
+
+        //HUD
+        var hud_enabled = 1;
+        if (menu_state[pid] > 0) hud_enabled = 0;
+        if (hud_enabled) {
+            score.updateDisplay();
+        }
+        if (score.recent_timer[pid] == 0 && hud_enabled) {
+            if (strike_state[pid] == 1) {
+                //airstrike hud
+                screen.printfAt(0, "\x12\x04Use Mouse to aim airstrike trajectory.");
+                screen.printfAt(1, "\x12\x04Left click to confirm and call in.");
+            } else if (aug_state[pid] > 0) {
+                //augment hud
+                screen.printfAt(0, "\x12\x04Use mouse to aim, A+click to fire.");
+                screen.printfAt(1, "\x12\x04Move or right-click to cease fire.");
+            }
+        }
+        
+
+        //SOUND / BROADCAST
+        if (hero_hitpoints[pid] > 0) {
+            for (var i = 0 ; i < 8 ; i++) {
+                if (sound_gun[i] == 1) {
+                    setloc(l_main, hero_posX[pid], hero_posY[pid]);
+                    locAcquireLoc(l_main, l_10x10);
+                    locAcquireLoc(l_main, l_22x22);
+                    if (heroAt(i, l_main)) {sound.rifle_close();}
+                    else if (heroAt(i, l_22x22)) {sound.rifle_medium();}
+                    else {sound.rifle_far();}
+                }
+                if (sound_gun[i] == 2) {
+                    setloc(l_main, hero_posX[pid], hero_posY[pid]);
+                    locAcquireLoc(l_main, l_10x10);
+                    locAcquireLoc(l_main, l_22x22);
+                    if (heroAt(i, l_main)) {sound.pdw_close();}
+                    else if (heroAt(i, l_22x22)) {sound.pdw_medium();}
+                    else {sound.rifle_far();}
+                }
+                if (sound_gun[i] == 3) {
+                    setloc(l_main, hero_posX[pid], hero_posY[pid]);
+                    locAcquireLoc(l_main, l_10x10);
+                    locAcquireLoc(l_main, l_22x22);
+                    if (heroAt(i, l_main)) {sound.lmg_close();}
+                    else if (heroAt(i, l_22x22)) {sound.lmg_med();}
+                    else {sound.lmg_far();}
+                }
+                if (sound_gun[i] == 4) {
+                    setloc(l_main, hero_posX[pid], hero_posY[pid]);
+                    locAcquireLoc(l_main, l_10x10);
+                    locAcquireLoc(l_main, l_22x22);
+                    if (heroAt(i, l_main)) {sound.shotgun_close();}
+                    else if (heroAt(i, l_22x22)) {sound.shotgun_med();}
+                    else {sound.shotgun_far();}
+                }
+                if (sound_gun[i] == 5) {
+                    setloc(l_main, hero_posX[pid], hero_posY[pid]);
+                    locAcquireLoc(l_main, l_10x10);
+                    locAcquireLoc(l_main, l_22x22);
+                    if (heroAt(i, l_main)) {sound.sniper_close();}
+                    else if (heroAt(i, l_22x22)) {sound.sniper_med();}
+                    else {sound.sniper_far();}
+                }
+                if (sound_broadcast[i] == 1 && i != pid) {
+                    sound.augment_warn();
+                } else if (sound_broadcast[i] == 2) { // pick up flag
+                    if (team[pid] == team[i]) {
+                        sound.objective_secured();
+                        screen.printfAt(10, "\x13\x04Enemy flag taken!");
+                    } else {
+                        sound.objective_lost();
+                        screen.printfAt(10, "\x13\x04Your flag has been taken!");
+                    }
+                } else if (sound_broadcast[i] == 3) { // return flag
+                    if (team[pid] == team[i]) {
+                        sound.objective_secured();
+                        screen.printfAt(10, "\x13\x04Your flag has been returned!");
+                    } else {
+                        sound.objective_lost();
+                        screen.printfAt(10, "\x13\x04Enemy flag has been returned!");
+                    }
+                } else if (sound_broadcast[i] == 4) { // flag score
+                    if (team[pid] == team[i]) {
+                        sound.objective_good();
+                        screen.printfAt(10, "\x13\x04YOUR TEAM SCORED!");
+                    } else {
+                        sound.objective_bad();
+                        screen.printfAt(10, "\x13\x04Enemy team Scored!");
+                    }
+                }
+                if (sound_killstreak[i] == 1) {
+                    sound.angel();
+                    DisplayText("\x13\x1CANGELS OF DEATH INCOMING!");
+                }
+            }
+        }
+
+        if (sound_explosion[pid] > 0) {
+            if (sound_explosion[pid] == 1) sound.explosion();
+            else if (sound_explosion[pid] == 2) sound.explosion0();
+            else if (sound_explosion[pid] == 3) sound.explosion_far();
+            else if (sound_explosion[pid] == 4) sound.flash();
+            sound_explosion[pid] = 0;
+        }
+
+        if (sound_physics[pid] > 0) {
+            if (sound_physics[pid] == 1) sound.nadebounce();
+            else if (sound_physics[pid] == 2) sound.nadethrow();
+            else if (sound_physics[pid] == 3) sound.c4throw();
+            else if (sound_physics[pid] == 4) sound.c4land();
+            sound_physics[pid] = 0;
+        }
+
+        if (sound_interact[pid] > 0) {
+            if (sound_interact[pid] == 1) sound.nadebeep();
+            else if (sound_interact[pid] == 2) sound.proxbeep();
+            sound_interact[pid] = 0;
+        }
+        
+        if (sound_wiz[pid] == 1) {
+            sound_wiz[pid] = 0;
+            sound.wiz();
+        }
+
+        if (sound_hitmarker == 1) sound.hitmarker();
+
+        if (atdoor[pid] > 0) atdoor[pid] = 1000;
+        if (heroAtRect(pid, 5920, 5984, 1440, 1520) ) atdoor[pid] = 1;
+        else if (heroAtRect(pid, 5872, 6048, 2256, 2366) ) atdoor[pid] = 2;
+        if (atdoor[pid] == 1000) {atdoor[pid] = 0; eprintf("\x0BNothing");}
+        if (atdoor[pid] > 0) {
+            if (input_e[pid] == 0) {
+                eprintf("\x04Hold \x1F[E] \x04to enter.");
+            } else if (input_e[pid]) {
+                interact_time[pid]++;
+                displayInteraction(1, interact_time[pid]);
+                if (interact_time[pid] >= cfg.door_time) {
+                    interact_time[pid] = 0;
+                    if (atdoor[pid] == 1) {
+                        teleportHeroPoint(pid, 5952, 2368);
+                        eprintf("\x0BNothing");
+                    } else if (atdoor[pid] == 2) {
+                        teleportHeroPoint(pid, 5952, 1536);
+                        eprintf("\x0BNothing");
+                    }
+                }
+            }
+        }
+        if (interact_time[pid] > 0 && input_e[pid] == 0) interact_time[pid] = 0;
+        
+        //VICTORY
+        if (game_state == 1) {
+            if (game_mode == 0) {
+                if (score.current_score[pid] >= ffa_score_max) triggerVictory();
+            }
+            if (game_mode == 1) {
+                if (team[pid] == 0 && score.team0_score >= tdm_score_max) triggerVictory();
+                if (team[pid] == 1 && score.team1_score >= tdm_score_max) triggerVictory();
+                if (team[pid] == 2 && score.team2_score >= tdm_score_max) triggerVictory();
+                if (team[pid] == 3 && score.team3_score >= tdm_score_max) triggerVictory();
+            }
+            if (game_mode == 2) {
+                if (team[pid] == 0 && score.team0_score >= ctf_score_max) triggerVictory();
+                if (team[pid] == 1 && score.team1_score >= ctf_score_max) triggerVictory();
+                if (team[pid] == 2 && score.team2_score >= ctf_score_max) triggerVictory();
+                if (team[pid] == 3 && score.team3_score >= ctf_score_max) triggerVictory();
+            }
+        }
+        if (game_state == 2) {
+            disablePlayer();
+            if (victory_timer == cfg.victory_display_time) Utils.clearScreen();
+            if (victory_timer > 0) {
+                screen.printfAt(0, "\x13\x04-- MATCH OVER! --");
+                if (team_victory == 0) screen.printfAt(1, "\x13\x04");
+                if (team_victory == 1) screen.printfAt(1, "\x13\x06TEAM EMBER VICTORY!");
+                if (team_victory == 2) screen.printfAt(1, "\x13\x1CTEAM SHADE VICTORY!");
+                if (team_victory == 3) screen.printfAt(1, "\x13\x17TEAM ANGEL VICTORY!");
+                if (team_victory == 4) screen.printfAt(1, "\x13\x18TEAM VENOM VICTORY!");
+                for (var i = 0 ; i < 8 ; i++) {
+                    if (winners[i] > 0) screen.printfAt(i + 2, "\x13{:c}{:n} \x04Wins the Match!", winners[i] - 1, winners[i] - 1);
+                }
+            }
+        }
+
+        //DEBUG MODE
+        const debug_mode = 1;
+        if (debug_mode) {
+            if (game_state == 0) {
+                const mx, my = menu.getLocalMouse();
+                eprintf("x{} y{}", mx, my);
+            } else if (game_state == 1) {
+                if (countdown_timer > 2) {countdown_timer = 0; clearTextLines(0, 7);}
+                if (frags_held[pid] < 9999) frags_held[pid] = 9999;
+                if (flashes_held[pid] < 9999) flashes_held[pid] = 9999;
+                if (mines_held[pid] < 9999) mines_held[pid] = 9999;
+                if (c4_held[pid] < 9999) c4_held[pid] = 9999;
+                // if (leftclick) {
+                //     const x, y = getMousePos(pid);
+                //     createSmoke(x, y);
+                // }
+                //screen.printfAt(0, "x{} y{}", mx, my);
+                //screen.printfAt(1, "endX: {}, endY: {} fendX: {} fendY: {}", strike_endX[pid], strike_endY[pid], strike_fendX[pid], strike_fendY[pid]);
+                //screen.printfAt(2, "{} {} {} {} {} {} {} {}", key_e[0], key_e[1], key_e[2], key_e[3], key_e[4], key_e[5], key_e[6], key_e[7]);
+            }
+        }
+
+        // if (game_state == 1 && pid == 0) {
+        //     
+        //     prj.arc(hero_posX[pid], hero_posY[pid], mx, my);
+        // }
+
+    EUDEndPlayerLoop();
+
+    //manage smoke
+    for (var i = 0; i < 16; i++) {
+        const hp = Unit.getHitpoints(smoke_arr[i]);
+        if (hp > 0) {
+            Unit.setHitpoints(smoke_arr[i], hp - 1);
+        }
+        if (hp == 0) {
+            Unit.setOrderID(smoke_arr[i], 0);
+        }
+    }
+
+    //manage proximity mines
+    if (mine_visual == 0) mine_visual = 48;
+    else if (mine_visual > 0) mine_visual--;
+
+    //flag
+    if (game_mode == 2) {
+        for (var i = 1; i < 9; i++) {
+            if (flag_follow[0] == i) {
+                const x = Unit.getPositionX(hero_arr[i-1]);
+                const y = Unit.getPositionY(hero_arr[i-1]);
+                if (hero_momentum[i-1] == 0) {
+                    setloc(l_main, x, y - 24);
+                    Order(u_flag, P11, anywhere, Move, l_main);
+                } else {
+                    setloc(l_main, x, y);
+                    Order(u_flag, P11, anywhere, Move, l_main);
+                }
+            }
+            if (flag_follow[1] == i) {
+                const x = Unit.getPositionX(hero_arr[i-1]);
+                const y = Unit.getPositionY(hero_arr[i-1]);
+                if (hero_momentum[i-1] == 0) {
+                    setloc(l_main, x, y - 24);
+                    Order(u_flag, P12, anywhere, Move, l_main);
+                } else {
+                    setloc(l_main, x, y);
+                    Order(u_flag, P12, anywhere, Move, l_main);
+                }
+            }
+        }
+
+        //flag home visual
+        if (flag_visual == 0) {
+            flag_visual = 48;
+            const x0, y0 = getFlagHomeCoords(0);
+            const x1, y1 = getFlagHomeCoords(1);
+            setloc(l_main, x0, y0);
+            setloc(l_0x0, x1, y1);
+            effects.flagcircle(545, l_main);
+            effects.flagcircle(545, l_0x0);
+        } else if (flag_visual > 0) flag_visual--;
+
+        //score
+        for (var i = 0; i < 2; i++) {
+            const x = Unit.getPositionX(flag_arr[i]);
+            const y = Unit.getPositionY(flag_arr[i]);
+            var scr_x, scr_y;
+            var destx, desty;
+            var enemyflagid;
+            if (i == 0) {
+                destx, desty = getFlagHomeCoords(1);
+                enemyflagid = 1;
+            } else {
+                destx, desty = getFlagHomeCoords(0);
+                enemyflagid = 0;
+            }
+            if (
+                (trig.getDistance(x, y, destx, desty) <= 64 && setting_homeflag == 0) ||
+                (trig.getDistance(x, y, destx, desty) <= 64 && setting_homeflag == 1 && flagIsHome(enemyflagid))
+            ) {
+                score.addFlagScore(i, flag_follow[i]);
+                scr_x, scr_y = x, y;
+                flag_effect[i] = 1;
+                const rx, ry = getFlagHomeCoords(i);
+                setloc(l_main, rx, ry);
+                if (i == 0) MoveUnit(1, u_flag, P11, anywhere, l_main);
+                else MoveUnit(1, u_flag, P12, anywhere, l_main);
+                hero_momentum[flag_follow[i] - 1] = 0;
+                broadcast[flag_follow[i] - 1] = 4;
+                flag_follow[i] = 0;
+            }
+
+            //flag score effect
+            if (flag_effect[i] > 0) {
+                setloc(l_main, scr_x, scr_y);
+                if (flag_effect[i] == 1) effects.isometricCircle(213, l_main, 0);
+                else if (flag_effect[i] == 3) effects.isometricCircle(213, l_main, 1);
+                else if (flag_effect[i] == 5) effects.isometricCircle(213, l_main, 2);
+                flag_effect[i]++;
+                if (flag_effect[i] > 5) flag_effect[i] = 0;
+            }
+        }
+    }
+
+    if (Bring(P12, AtLeast, 1, "Flag", anywhere)) RemoveUnit("Flag", P12);
+
+    if (victory_timer == 1) resetGame();
+    if (victory_timer > 0) victory_timer--;
+
+    //MANAGE PLAYERS IN-GAME
+    for (var i = 0; i < 8; i++) {
+        if (playerexist(i) == false && player_state[i] > 0) {
+            const x = Unit.getPositionX(hero_arr[i]);
+            const y = Unit.getPositionY(hero_arr[i]);
+            setloc(l_main, x, y);
+            if (i == 0) {MoveUnit(1, u_hero, P12, l_main, l_p1strg); GiveUnits(1, u_hero, P12, l_p1strg, P1);}
+            else if (i == 1) {MoveUnit(1, u_hero, P12, l_main, l_p2strg); GiveUnits(1, u_hero, P12, l_p2strg, P2);}
+            else if (i == 2) {MoveUnit(1, u_hero, P12, l_main, l_p3strg); GiveUnits(1, u_hero, P12, l_p3strg, P3);}
+            else if (i == 3) {MoveUnit(1, u_hero, P12, l_main, l_p4strg); GiveUnits(1, u_hero, P12, l_p4strg, P4);}
+            else if (i == 4) {MoveUnit(1, u_hero, P12, l_main, l_p5strg); GiveUnits(1, u_hero, P12, l_p5strg, P5);}
+            else if (i == 5) {MoveUnit(1, u_hero, P12, l_main, l_p6strg); GiveUnits(1, u_hero, P12, l_p6strg, P6);}
+            else if (i == 6) {MoveUnit(1, u_hero, P12, l_main, l_p7strg); GiveUnits(1, u_hero, P12, l_p7strg, P7);}
+            else if (i == 7) {MoveUnit(1, u_hero, P12, l_main, l_p8strg); GiveUnits(1, u_hero, P12, l_p8strg, P8);}
+            if (Command(i, AtLeast, 1, u_hero) ) player_state[i] = 0;
+        }
+    }
+}

@@ -1,0 +1,34 @@
+function getDistance(originX, originY, destX, destY) {
+    const a = originX - destX;
+    const b = originY - destY;
+    const distance = sqrt( a*a + b*b );
+    return distance;
+}
+
+function getPositionX(unitPointer) {
+    return wread_epd(unitPointer + 0x028 / 4, 0x028 % 4);
+}
+
+function getPositionY(unitPointer) {
+    return wread_epd(unitPointer + 0x02A / 4, 0x02A % 4);
+}
+
+function getOrderTargetX(unitPointer) {
+    return wread_epd(unitPointer + 0x058 / 4, 0x058 % 4);
+}
+
+function getOrderTargetY(unitPointer) {
+    return wread_epd(unitPointer + 0x05A / 4, 0x05A % 4);
+}
+
+function onPluginStart() {
+
+}
+
+function beforeTriggerExec() {
+    
+}
+
+function afterTriggerExec() {
+
+}

@@ -1,0 +1,172 @@
+import coord;
+import main;
+
+const zone0_locsize = 5;
+const zone1_locsize = 3;
+const zone2_locsize = 5;
+const zone3_locsize = 5;
+const zone4_locsize = 2;
+const zone5_locsize = 5;
+const zone6_locsize = 3;
+const zone7_locsize = 5;
+
+function respawn() {
+    const pid = getcurpl();
+    var spawn_valid = true;
+    var x, y;
+    if (main.game_zone == 0) {
+        if (main.game_mode == 0 || main.game_mode == 1) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone0_spawns_generic]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone0_spawns_generic]'));
+            const r = dwrand() / (0xFFFFFFFF / xs.length + 1);
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone0_locsize * 32, zone0_locsize * 32);
+        } else if (main.game_mode == 2) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone0_spawns_teams]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone0_spawns_teams]'));
+            var r = dwrand() / (0xFFFFFFFF / 16);
+            if (main.team[pid] == 1) r += 16;
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone0_locsize * 32, zone0_locsize * 32);
+        }
+    }
+    if (main.game_zone == 1) {
+        if (main.game_mode == 0 || main.game_mode == 1) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone1_spawns_generic]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone1_spawns_generic]'));
+            const r = dwrand() / (0xFFFFFFFF / xs.length + 1);
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone1_locsize * 32, zone1_locsize * 32);
+        } else if (main.game_mode == 2) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone1_spawns_teams]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone1_spawns_teams]'));
+            var r = dwrand() / (0xFFFFFFFF / 10);
+            if (main.team[pid] == 1) r += 10;
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone1_locsize * 32, zone1_locsize * 32);
+        }
+    }
+    if (main.game_zone == 2) {
+        if (main.game_mode == 0 || main.game_mode == 1) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone2_spawns_generic]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone2_spawns_generic]'));
+            const r = dwrand() / (0xFFFFFFFF / xs.length + 1);
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone2_locsize * 32, zone2_locsize * 32);
+        } else if (main.game_mode == 2) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone2_spawns_teams]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone2_spawns_teams]'));
+            var r = dwrand() / (0xFFFFFFFF / 8);
+            if (main.team[pid] == 1) r += 8;
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone2_locsize * 32, zone2_locsize * 32);
+        }
+    }
+    if (main.game_zone == 3) {
+        if (main.game_mode == 0 || main.game_mode == 1) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone3_spawns_generic]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone3_spawns_generic]'));
+            const r = dwrand() / (0xFFFFFFFF / xs.length + 1);
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone3_locsize * 32, zone3_locsize * 32);
+        } else if (main.game_mode == 2) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone3_spawns_teams]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone3_spawns_teams]'));
+            var r = dwrand() / (0xFFFFFFFF / 8);
+            if (main.team[pid] == 1) r += 8;
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone3_locsize * 32, zone3_locsize * 32);
+        }
+    }
+    if (main.game_zone == 4) {
+        if (main.game_mode == 0 || main.game_mode == 1) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone4_spawns_generic]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone4_spawns_generic]'));
+            const r = dwrand() / (0xFFFFFFFF / xs.length + 1);
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone4_locsize * 32, zone4_locsize * 32);
+        } else if (main.game_mode == 2) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone4_spawns_teams]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone4_spawns_teams]'));
+            var r = dwrand() / (0xFFFFFFFF / 10);
+            if (main.team[pid] == 1) r += 10;
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone4_locsize * 32, zone4_locsize * 32);
+        }
+    }
+    if (main.game_zone == 5) {
+        if (main.game_mode == 0 || main.game_mode == 1) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone5_spawns_generic]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone5_spawns_generic]'));
+            const r = dwrand() / (0xFFFFFFFF / xs.length + 1);
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone5_locsize * 32, zone5_locsize * 32);
+        } else if (main.game_mode == 2) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone5_spawns_teams]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone5_spawns_teams]'));
+            var r = dwrand() / (0xFFFFFFFF / 8);
+            if (main.team[pid] == 1) r += 8;
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone5_locsize * 32, zone5_locsize * 32);
+        }
+    }
+    if (main.game_zone == 6) {
+        if (main.game_mode == 0 || main.game_mode == 1) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone6_spawns_generic]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone6_spawns_generic]'));
+            const r = dwrand() / (0xFFFFFFFF / xs.length + 1);
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone6_locsize * 32, zone6_locsize * 32);
+        } else if (main.game_mode == 2) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone6_spawns_teams]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone6_spawns_teams]'));
+            var r = dwrand() / (0xFFFFFFFF / 6);
+            if (main.team[pid] == 1) r += 6;
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone6_locsize * 32, zone6_locsize * 32);
+        }
+    }
+    if (main.game_zone == 7) {
+        if (main.game_mode == 0 || main.game_mode == 1) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone7_spawns_generic]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone7_spawns_generic]'));
+            const r = dwrand() / (0xFFFFFFFF / xs.length + 1);
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone7_locsize * 32, zone7_locsize * 32);
+        } else if (main.game_mode == 2) {
+            const xs = EUDArray(py_eval('[x for x, y in coord.zone7_spawns_teams]'));
+            const ys = EUDArray(py_eval('[y for x, y in coord.zone7_spawns_teams]'));
+            var r = dwrand() / (0xFFFFFFFF / 10);
+            if (main.team[pid] == 1) r += 10;
+            x, y = xs[r], ys[r];
+            setloc(main.l_main, x, y);
+            dilateloc(main.l_main, zone7_locsize * 32, zone7_locsize * 32);
+        }
+    }
+    if (main.alliance_p1[pid] == 0 && pid != 0 && main.heroAt(0, main.l_main)) spawn_valid = false;
+    if (main.alliance_p2[pid] == 0 && pid != 1 && main.heroAt(1, main.l_main)) spawn_valid = false;
+    if (main.alliance_p3[pid] == 0 && pid != 2 && main.heroAt(2, main.l_main)) spawn_valid = false;
+    if (main.alliance_p4[pid] == 0 && pid != 3 && main.heroAt(3, main.l_main)) spawn_valid = false;
+    if (main.alliance_p5[pid] == 0 && pid != 4 && main.heroAt(4, main.l_main)) spawn_valid = false;
+    if (main.alliance_p6[pid] == 0 && pid != 5 && main.heroAt(5, main.l_main)) spawn_valid = false;
+    if (main.alliance_p7[pid] == 0 && pid != 6 && main.heroAt(6, main.l_main)) spawn_valid = false;
+    if (main.alliance_p8[pid] == 0 && pid != 7 && main.heroAt(7, main.l_main)) spawn_valid = false;
+    setloc(main.l_main, x, y);
+    const s = spawn_valid;
+    return s, x, y;
+}

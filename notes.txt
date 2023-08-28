@@ -1,0 +1,92 @@
+v0.7 FOCUS
+    Perks
+    equipment
+        frag grenade - throwable
+        smoke grenade
+        stun grenade - throwable
+        claymore - spawn at feet
+        C4 - throwable
+        stim shot
+        tactical insertion
+        throwing knife - projectile
+    search and destroy
+    domination
+    chopper gunner killstreak
+    bots
+    optimization
+
+            if (main.selected_equipment[pid] == 0) btn_equipped = Db("\x04Frag Grenade");
+        else if (main.selected_equipment[pid] == 1) btn_equipped = Db("\x04Smoke Grenade");
+        else if (main.selected_equipment[pid] == 2) btn_equipped = Db("\x04Stun Grenade");
+        else if (main.selected_equipment[pid] == 3) btn_equipped = Db("\x04Proximity Mine");
+        else if (main.selected_equipment[pid] == 4) btn_equipped = Db("\x04C4 Explosive");
+        else if (main.selected_equipment[pid] == 5) btn_equipped = Db("\x04Combat Stim");
+        else if (main.selected_equipment[pid] == 6) btn_equipped = Db("\x04Tactical Insertion");
+        else if (main.selected_equipment[pid] == 7) btn_equipped = Db("\x04Throwing Knife");
+
+CURRENTLY
+    water regions for brescent byne zone
+    fixing input
+        detecting hold
+        
+
+    
+            
+
+BUGS
+    can attack while reloading augment
+    sometimes projectile death image appears on the player instead of at the position of projectile death - MAYBE FIXED?
+    can kill someone twice in a life by exploding a barrel with them next to it with an augment and doing enough damage with augment to kill as well - MAYBE FIXED
+    
+
+TODO
+    buzz kills
+    stfu kills
+    shake it off kill (get a kill while stunned)
+    verify that spawns work correctly 0-15, 16-31 etc
+    respawn timer
+    notify equipment amount on use
+    redo msqc input stuff
+    hold to place proximity mine
+
+
+    
+IDEAS
+    match end music could be fight club music
+    when button is greyed out display how to get it
+    center cam option
+    maybe make custom vision on overpass?
+    display hp in a more obvious way
+    sound for low health? maybe beeping
+    Perks
+        Hardline - killstreaks require 1 less kill to get.
+        Quickfix - getting a kill starts health regen immediately.
+        Adrenaline - low health grants increased movement speed.
+        Lethal Sight - standing still for a period of time grants damage bonus.
+        Double Time - faster dash recovery.
+        Flak Jacket - damage resistance to explosions and killstreaks.
+        Marksman - something that gives you more damage at range/rewards longshots.
+        ??? - something good for augments, more ammo or more accuracy.
+        Eagle Eye - ability to see high ground from low ground.
+
+    make unit kill count display in game kills
+    show timer for return to lobby after a match ends so people know not to leave
+    combat mode - rapid fire, ghosts have more hp and instant weapon cooldown
+    combat mode - hero mode, large hp pool for long fights. last man standing
+    combat mode - augments only
+    combat mode - normal snipers
+
+
+
+CHANGES v0.7
+    reworked menu system
+    reworked projectile system
+    added explosion object system
+    implemented damage fall off for augments
+
+CONTRIBUTIONS
+    Major
+        Kaias, Lethal_Illusion, Inferno, Farty, Armo, Milestone, 
+
+    General
+        iDoodler, Lanthanide, Moose, Sayoka, sniper discord for testing sometimes

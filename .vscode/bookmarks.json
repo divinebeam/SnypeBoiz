@@ -1,0 +1,89 @@
+{
+	"files": [
+		{
+			"path": "main.eps",
+			"bookmarks": [
+				{
+					"line": 42,
+					"column": 11,
+					"label": "LOCATIONS"
+				},
+				{
+					"line": 77,
+					"column": 10,
+					"label": "VARIABLE"
+				},
+				{
+					"line": 269,
+					"column": 0,
+					"label": "FUNCTIONS"
+				},
+				{
+					"line": 1561,
+					"column": 26,
+					"label": "PLUGIN START"
+				},
+				{
+					"line": 1622,
+					"column": 29,
+					"label": "AFTER TRIGGER EXECUTION"
+				},
+				{
+					"line": 1891,
+					"column": 22,
+					"label": "RIFLE ATTACK"
+				},
+				{
+					"line": 2269,
+					"column": 13,
+					"label": "KILLSTREAKS"
+				},
+				{
+					"line": 2293,
+					"column": 18,
+					"label": "AUGMENTS"
+				},
+				{
+					"line": 2402,
+					"column": 19,
+					"label": "AIRSTRIKE"
+				},
+				{
+					"line": 2532,
+					"column": 19,
+					"label": "EQUIPMENT"
+				},
+				{
+					"line": 2774,
+					"column": 17,
+					"label": "RESPAWN"
+				},
+				{
+					"line": 2830,
+					"column": 26,
+					"label": "JUST GOT KILL"
+				},
+				{
+					"line": 2932,
+					"column": 16,
+					"label": "VISION"
+				},
+				{
+					"line": 2977,
+					"column": 14,
+					"label": "MENU"
+				},
+				{
+					"line": 3011,
+					"column": 27,
+					"label": "SOUND/BROADCAST"
+				},
+				{
+					"line": 3175,
+					"column": 20,
+					"label": "DEBUG"
+				}
+			]
+		}
+	]
+}
